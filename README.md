@@ -32,8 +32,8 @@ Build it. In theroy, that's it.
 
 Below are the milestones, if you will
 <ul>
-  <li>Hello World</li>
-  <li></li>
+  <li><strike>Hello Console World</strike></li>
+  <li>Hello Win32 World</li>
   <li></li>
 </ul>
 
