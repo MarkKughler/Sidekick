@@ -25,7 +25,7 @@ Let's Go!
   <li>Windows OS</li>
 </ul>
 
-The setup has been automated to a degree and in a fairly cleen fashion.
+The setup has been automated to a degree and in a fairly clean fashion.
 Simply run the GenerateVsProject.bat which will check for minimum required tool versions.
 Automatically create a _build folder in the same directory and populate it with the necessary items depending on your build tools. 
 Build it. In theroy, that's it.
