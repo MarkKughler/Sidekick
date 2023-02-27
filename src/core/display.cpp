@@ -1,5 +1,4 @@
 #include "display.h"
-#include "../resource/res.h"
 
 ATOM Core::registerWindowClass(LPCSTR wndClassName, WNDPROC wndProc, int wndExtra)
 {
@@ -20,17 +19,17 @@ ATOM Core::registerWindowClass(LPCSTR wndClassName, WNDPROC wndProc, int wndExtr
 }
 
 
-HWND Core::createWindowObject(HWND hParent, LPCSTR wndClassName, Style::eStyle style, DWORD ws_style, const char* title, RECT rect)
+HWND Core::createWindowObject(HWND hParent, LPCSTR wndClassName, eStyle style, DWORD ws_style, const char* title, RECT rect)
 {
 	DWORD out_style = 0;
 	DWORD out_style_ex = 0;
 	switch (style)
 	{
-	case Style::eStyle::parent:
+	case eStyle::parent:
 		out_style_ex = WS_EX_OVERLAPPEDWINDOW;
 		out_style = WS_SYSMENU | WS_VISIBLE | WS_CLIPCHILDREN;
 		break;
-	case Style::eStyle::ctrl:
+	case eStyle::ctrl:
 		out_style_ex = WS_EX_CLIENTEDGE;
 		out_style = WS_CHILD | WS_VISIBLE | ws_style;
 		break;

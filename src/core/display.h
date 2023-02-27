@@ -2,8 +2,9 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include "../resource/res.h"
 
-namespace Style
+namespace Core
 {
 	enum eStyle
 	{
@@ -11,12 +12,9 @@ namespace Style
 		ctrl,
 		num_styles
 	};
-}
 
-namespace Core
-{
 	ATOM registerWindowClass(LPCSTR wndClassName, WNDPROC wndProc, int wndExtra = 0);
-	HWND createWindowObject(HWND hParent, LPCSTR wndclassName, Style::eStyle style, DWORD ws_style, const char* title, RECT rect);
+	HWND createWindowObject(HWND hParent, LPCSTR wndclassName, eStyle style, DWORD ws_style, const char* title, RECT rect);
 	RECT getRectWorkarea();
 
 	static DWORD parent_ex_style = WS_EX_OVERLAPPEDWINDOW;

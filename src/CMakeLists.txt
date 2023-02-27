@@ -3,14 +3,13 @@ project(Sidekick VERSION 0.1.0)
 set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Sidekick)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(TARGET PROPERTY WIN32_EXECUTABLE true)
-
 
 file(GLOB_RECURSE src_list LIST_DIRECTORIES false RELATIVE 
 	"${CMAKE_CURRENT_SOURCE_DIR}" 
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+       "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.rc"
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${src_list})
+add_executable(${PROJECT_NAME} WIN32 ${src_list} ${hdr_list})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${src_list})
