@@ -11,7 +11,7 @@ ATOM Core::registerWindowClass(LPCSTR wndClassName, WNDPROC wndProc, int wndExtr
 	wcex.hIcon = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK));
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK_SM));
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.hbrBackground = CreateSolidBrush(RGB(35, 35, 35));
 	wcex.lpszMenuName = MAKEINTRESOURCE(IDC_SIDEKICK_MENU);
 	wcex.lpszClassName = wndClassName;
 
