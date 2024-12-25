@@ -11,7 +11,8 @@
 #define IDI_SIDEKICK_SM              116
 
 #define IDC_SIDEKICK_ACC             200
-#define IDC_SIDEKICK_MENU            201
+#define IDC_CROSSHAIR                201
+#define IDC_SIDEKICK_MENU            202
 
 #define IDM_ABOUT                    400
 #define IDM_EXIT                     401

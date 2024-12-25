@@ -1,50 +1,94 @@
 #include "display.h"
+#include <iostream>
 
-ATOM Core::registerWindowClass(LPCSTR wndClassName, WNDPROC wndProc, int wndExtra)
+core::cDisplay::cDisplay() {}
+core::cDisplay::~cDisplay() {}
+
+LRESULT CALLBACK core::cDisplay::MessageRouter(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	WNDCLASSEX wcex = { 0 };
-	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.style = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc = wndProc;
-	wcex.cbWndExtra = wndExtra;
-	wcex.hInstance = GetModuleHandle(0);
-	wcex.hIcon = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK));
-	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK_SM));
-	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcex.hbrBackground = CreateSolidBrush(RGB(35, 35, 35));
-	wcex.lpszMenuName = MAKEINTRESOURCE(IDC_SIDEKICK_MENU);
-	wcex.lpszClassName = wndClassName;
-
-	return RegisterClassEx(&wcex);
-}
-
-
-HWND Core::createWindowObject(HWND hParent, LPCSTR wndClassName, eStyle style, DWORD ws_style, const char* title, RECT rect)
-{
-	DWORD out_style = 0;
-	DWORD out_style_ex = 0;
-	switch (style)
-	{
-	case eStyle::parent:
-		out_style_ex = WS_EX_OVERLAPPEDWINDOW;
-		out_style = WS_SYSMENU | WS_VISIBLE | WS_CLIPCHILDREN;
-		break;
-	case eStyle::ctrl:
-		out_style_ex = WS_EX_CLIENTEDGE;
-		out_style = WS_CHILD | WS_VISIBLE | ws_style;
-		break;
+	cDisplay* pDisplay;
+	if (msg == WM_CREATE) {
+		pDisplay = (cDisplay*)(((LPCREATESTRUCT)lParam)->lpCreateParams);
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)pDisplay);
 	}
+	else
+		pDisplay = (cDisplay*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-	HWND hwnd = CreateWindowEx(out_style_ex, wndClassName, title, out_style,
-		rect.left, rect.top, rect.right, rect.bottom,
-		hParent, nullptr, GetModuleHandle(0), nullptr);
-
-	UpdateWindow(hwnd);
-	return hwnd;
+	return pDisplay->WndProc(hwnd, msg, wParam, lParam);
 }
 
 
-RECT Core::getRectWorkarea()
+LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+
+	case WM_SIZE:
+		ogl.Reshape(LOWORD(lParam), HIWORD(lParam));
+		break;
+
+	case WM_DESTROY:
+		std::cout << "--- NubExit ---" << std::endl;
+		CloseWindow(hwnd);
+		PostQuitMessage(0);
+		break;
+
+	case WM_KEYUP:
+		input_state[(int)wParam] = 0;
+
+		// todo separate by keys
+		switch (wParam) {
+		case VK_ESCAPE:
+			static bool bWireframe = false;
+			if (bWireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			else glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			bWireframe = !bWireframe;
+			break;
+		}
+		break;
+	
+	case WM_KEYDOWN:
+		input_state[(int)wParam] = 1;
+		break;
+	
+	}
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+
+bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, int width, int height)
+{
+	WNDCLASSEX wc = { 0 };
+	wc.cbSize = sizeof(WNDCLASSEXW);
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc = MessageRouter;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = GetModuleHandle(nullptr);
+	wc.hIcon = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK));
+	wc.hIconSm = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK_SM));
+	wc.hCursor = LoadCursor(wc.hInstance, MAKEINTRESOURCE(IDC_CROSSHAIR));
+	wc.hbrBackground = CreateSolidBrush(RGB(35, 35, 35));
+	wc.lpszMenuName = nullptr;
+	wc.lpszClassName = class_name;
+	if (!RegisterClassEx(&wc)) return false;
+
+	DWORD style = WS_OVERLAPPEDWINDOW;
+	hWnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
+		class_name, title, style, CW_USEDEFAULT, 0, width, height, nullptr, nullptr, wc.hInstance, this);
+
+	ogl.Create(hWnd);
+	ShowWindow(hWnd, SW_SHOW);
+	UpdateWindow(hWnd);
+
+	return true;
+}
+
+
+
+
+
+/*RECT core::getRectWorkarea()
 {
 	RECT rect_screen = {};
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect_screen, 0);
@@ -54,5 +98,5 @@ RECT Core::getRectWorkarea()
 	// todo start bar top
 	// todo start bar left
 	return rect_screen;
-}
+}*/
 

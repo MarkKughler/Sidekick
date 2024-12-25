@@ -1,22 +1,31 @@
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
+#define WIN_32_EXTRA_LEAN
 #include <Windows.h>
 #include "../resource/res.h"
+#include "../lib/glad/glad_4_6.h"
+#include "ogl.h"
 
-namespace Core
+namespace core
 {
-	enum eStyle
+
+	class cDisplay
 	{
-		parent,
-		ctrl,
-		num_styles
+	public:
+		cDisplay();
+		~cDisplay();
+
+		bool Create(LPCSTR title, LPCSTR class_name, int width, int height);
+
+		static LRESULT CALLBACK MessageRouter(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+		LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	public:
+		HWND hWnd = 0;
+		cOGLContext ogl;
+
+		int input_state[256] = { 0 };
 	};
-
-	ATOM registerWindowClass(LPCSTR wndClassName, WNDPROC wndProc, int wndExtra = 0);
-	HWND createWindowObject(HWND hParent, LPCSTR wndclassName, eStyle style, DWORD ws_style, const char* title, RECT rect);
-	RECT getRectWorkarea();
-
-	static DWORD parent_ex_style = WS_EX_OVERLAPPEDWINDOW;
-	static DWORD parent_style = WS_SYSMENU | WS_VISIBLE | WS_VSCROLL;
+	
 }
