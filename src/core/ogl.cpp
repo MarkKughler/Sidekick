@@ -3,11 +3,11 @@
 #include "display.h"
 
 #include "../lib/glad/glad_4_6.h"
-#define WGL_CONTEXT_MAJOR_VERSION 0x2091
-#define WGL_CONTEXT_MINOR_VERSION 0X2092
-#define WGL_CONTEXT_FLAGS 0X2094
-#define WGL_CONTEXT_COREPROFILE_BIT 0x00000001
-#define WGL_CONTEXT_PROFILE_MASK 0x9126
+constexpr auto WGL_CONTEXT_MAJOR_VERSION = 0x2091;
+constexpr auto WGL_CONTEXT_MINOR_VERSION = 0X2092;
+constexpr auto WGL_CONTEXT_FLAGS = 0X2094;
+constexpr auto WGL_CONTEXT_COREPROFILE_BIT = 0x00000001;
+constexpr auto WGL_CONTEXT_PROFILE_MASK = 0x9126;
 typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int* attribList);
 typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC)(void);
 typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int);
@@ -57,17 +57,16 @@ bool core::cOGLContext::Create(HWND in_hwnd)
         WGL_CONTEXT_PROFILE_MASK,
         WGL_CONTEXT_COREPROFILE_BIT, 0,
     };
-    HGLRC hglrc = wglCreateContextAttribs(hdc, 0, attribute_list);
+    hrc = wglCreateContextAttribs(hdc, 0, attribute_list);
     wglMakeCurrent(nullptr, nullptr);
     wglDeleteContext(ogl_rc);
-    wglMakeCurrent(hdc, hglrc);
-    if (!gladLoadGL()) std::cout << "Could not initialize GLAD" << std::endl;
+    wglMakeCurrent(hdc, hrc);
+    if (!gladLoadGL()) std::cout << "Could not load OpenGL functions" << std::endl;
     else std::cout << "Using OpenGL version: " << GLVersion.major << "." << GLVersion.minor << std::endl;
 
     PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
     bool swapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
     // https://www.khronos.org/opengl/wiki/Swap_Interval
-    int vsynch = 0;
     if (swapControlSupported) {
         PFNWGLSWAPINTERVALEXTPROC wglSwapInternalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
         PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
@@ -83,7 +82,7 @@ bool core::cOGLContext::Create(HWND in_hwnd)
 
 void core::cOGLContext::SetState()
 {
-    glClearColor(0.4f, 0.6f, 0.9f, 0.0f);
+    glClearColor(0.137255f, 0.137255f, 0.137255f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 }
@@ -93,6 +92,7 @@ void core::cOGLContext::Reshape(int width, int height)
 {
     window_width = width;
     window_height = height;
+    // todo: resize viewport, resize buffers
 }
 
 
@@ -100,4 +100,10 @@ void core::cOGLContext::Begin()
 {
     glViewport(0, 0, window_width, window_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
+
+void core::cOGLContext::End() 
+{ 
+    SwapBuffers(hdc); 
 }

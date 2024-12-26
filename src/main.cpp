@@ -1,25 +1,23 @@
 
 #include "resource/targetver.h"
 #include "core/display.h"
-
+#include "core/shader_gui.h"
+#include "core/model.h"
 #include <string>
 #include <vector>
 
 // global variables
-#define MAX_LOADSTRING 100                 // max array buffer size
-char szTitle[MAX_LOADSTRING];           // title bar text
-char szWindowClass[MAX_LOADSTRING];     // main window class name
+#define MAX_LOADSTRING 128
+char szTitle[MAX_LOADSTRING];              // title bar text
+char szWindowClass[MAX_LOADSTRING];        // main window class name
 
-HINSTANCE hInst;                           // current instance
 HWND hwnd_parent;
 RECT rect_screen_workarea;                 // screen space (x, y, w, h)
 RECT rect_client_workarea;                 // client space (0, 0, w, h)
 
-// forward declarations
-LRESULT CALLBACK proc_Wnd(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK proc_Invoice(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK proc_About(HWND, UINT, WPARAM, LPARAM);
 
+core::cShader_gui shader_gui;
+core::cModel model;
 
 struct Config
 {
@@ -29,16 +27,16 @@ struct Config
 
 
 #ifdef NDEBUG
-int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev_instance, _In_ LPWSTR cmd_line, _In_ int cmd_show)
+int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev_instance, _In_ LPWSTR cmd_line, _In_ int cmd_show) {
 #else
 #pragma comment(linker, "/SUBSYSTEM:CONSOLE")
-int main(char* argc, int argv)
+int main(char* argc, int argv) {
+    HINSTANCE instance = GetModuleHandle(0);
 #endif
-{
-    HINSTANCE hInst = GetModuleHandleW(0);
-    LoadString(hInst, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadString(hInst, IDC_SIDEKICK_CLASS, szWindowClass, MAX_LOADSTRING);
-    HACCEL hAccelTable = LoadAccelerators(hInst, MAKEINTRESOURCE(IDC_SIDEKICK_ACC));
+
+    LoadString(instance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+    LoadString(instance, IDC_SIDEKICK_CLASS, szWindowClass, MAX_LOADSTRING);
+    HACCEL hAccelTable = LoadAccelerators(instance, MAKEINTRESOURCE(IDC_SIDEKICK_ACC));
 
     core::cDisplay display;
     config.monitor[0] = GetSystemMetrics(SM_CXSCREEN);
@@ -47,7 +45,17 @@ int main(char* argc, int argv)
     display.Create(szTitle, szWindowClass, config.screen[0], config.screen[1]);
     display.ogl.SetState();
     
-    
+    shader_gui.Create();
+
+    // x, y, z, r, g, b
+    float vdata[18] = { -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+                         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+                         0.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f 
+                      };
+    unsigned int idata[3] = { 0, 1, 2 };
+    model.Upload(3, 3, 6, vdata, idata);
+
+
     MSG msg = { 0 };
     while (GetMessage(&msg, nullptr, 0, 0))
     {
@@ -58,9 +66,16 @@ int main(char* argc, int argv)
         }
 
         display.ogl.Begin();
+        float world[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+        shader_gui.SetParameters(world);
+        model.Render();
         display.ogl.End();
     }
 
+ 
+    model.Destroy();
+    shader_gui.Destroy();
+    
     return (int)msg.wParam;
 }
 
@@ -114,7 +129,7 @@ LRESULT CALLBACK proc_Wnd(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     return 0;
 }
-
+*/
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 // About Box Message handler - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -137,4 +152,3 @@ INT_PTR CALLBACK proc_About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
     return (INT_PTR)FALSE;
 }
 
-*/

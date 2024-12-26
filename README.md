@@ -1,22 +1,13 @@
 # Sidekick
-Virtual Personal Assistant
+Tools that I want but too cheap to subscribe to them
+<h1>Software Design Assistant</h1>
+<ul>
+   <li>Call Stack Visializer</li>
+   <li>Documentation Writer</li>
+   <li>Todo Tracker</li>
+   <li></li>
+</ul>
 
-Hello and welcome.
-For me, Github has always been something I've gazed upon from afar. 
-That item that sparkled on the book shelf that wasn't ever touched.
-That point has come where now I'm feeling the urge to spike it like an American football. 
-
-Over the years, the search for the best practice has been elusive.
-At this time of writing (2023/02/22), this is an example of how I see the structure of software.
-The beginnings and hopfully over time something brilliant.
-
-My goal for this project is rather simple.
-A majority of my next steps are basically a rewrite of a tool I've already built and use for my personal business.
-The parent project tracks client lists and generates invoicing written out to .pdf format.
-It has served me well over that last eight to ten years, but it could be better.
-
-This is my opportunity to learn batching, CMake and Git.
-Let's Go!
 
 <h2>Getting Started Requirements</h2>
 <ul>
@@ -33,7 +24,8 @@ Build it. In theroy, that's it.
 Below are the milestones, if you will
 <ul>
   <li>[Commit 2023/02/25] <strike>Hello Console World</strike></li>
-  <li>[Commit 2023/02/26] Hello Win32 World</li>
+  <li>[Commit 2023/02/26] <strike>Hello Win32 World</strike></li>
+  <li>[Commit 2024/12/25] Added OpenGL 4.6 backend</li>
   <li></li>
 </ul>
 

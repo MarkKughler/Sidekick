@@ -36,7 +36,8 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 	case WM_KEYUP:
 		input_state[(int)wParam] = 0;
 
-		// todo separate by keys
+		// todo: move to assign-able function pointer
+		// todo: separate by keys
 		switch (wParam) {
 		case VK_ESCAPE:
 			static bool bWireframe = false;
@@ -45,6 +46,7 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			bWireframe = !bWireframe;
 			break;
 		}
+
 		break;
 	
 	case WM_KEYDOWN:
@@ -88,7 +90,8 @@ bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, int width, int heig
 
 
 
-/*RECT core::getRectWorkarea()
+/*
+RECT core::getRectWorkarea()
 {
 	RECT rect_screen = {};
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect_screen, 0);
@@ -98,5 +101,6 @@ bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, int width, int heig
 	// todo start bar top
 	// todo start bar left
 	return rect_screen;
-}*/
+}
+*/
 

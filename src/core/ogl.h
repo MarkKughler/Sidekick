@@ -1,4 +1,5 @@
 #pragma once
+#include <Windows.h>
 
 namespace core
 {
@@ -14,7 +15,7 @@ namespace core
         void SetState();
         void Reshape(int width, int height);
         void Begin();
-        void End() { SwapBuffers(hdc); }
+        void End();
 
     private:
         int window_width = 0;
