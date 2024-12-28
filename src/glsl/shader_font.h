@@ -9,19 +9,20 @@ namespace glsl
     public:
         cShader_font();
         cShader_font(cShader_font&) = delete;
-        ~cShader_font() { /*empty destructor*/ }
+        ~cShader_font() { Destroy(); }
 
         bool Create();
-        void Destroy();
-
-        bool SetParameters(float[16]);
+        
+        bool SetParameters(float[16]) const;
 
         unsigned int prog_id;
     
     private:
+        
+        void Destroy() const;
+        
         unsigned int _vs_id;
         unsigned int _fs_id;
-        
 
     };
 

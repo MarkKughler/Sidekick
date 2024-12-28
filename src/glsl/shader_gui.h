@@ -9,14 +9,16 @@ namespace glsl
     public:
         cShader_gui();
         cShader_gui(cShader_gui&) = delete;
-        ~cShader_gui() { /*empty destructor*/ }
+        ~cShader_gui() { Destroy(); }
 
         bool Create();
-        void Destroy();
-
-        bool SetParameters(float[16]);
+        
+        bool SetParameters(float[16]) const;
 
     private:
+        
+        void Destroy() const;
+        
         unsigned int _vs_id;
         unsigned int _fs_id;
         unsigned int _prog_id;

@@ -10,7 +10,7 @@ namespace core
 
         cModel();
         cModel(cModel&) = delete;
-        ~cModel() { /*empty destructor*/ }
+        ~cModel() { Destroy(); }
 
         /*
         Parameter Info:
@@ -21,10 +21,12 @@ namespace core
         index data 
         */
         bool Upload(int, int, int, float*, unsigned int*);
-        void Destroy();
-        void Render();
+        
+        void Render() const;
 
     private:
+        
+        void Destroy() const;
 
         int _indices_count;
 

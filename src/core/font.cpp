@@ -10,7 +10,7 @@ core::cFont::cFont()
 }
 
 
-bool core::cFont::Initialize(unsigned int shader_id)
+bool core::cFont::Initialize(unsigned int shader_id, const char* filename, int font_size)
 {
     _prog_id = shader_id;
     FT_Library ft;
@@ -20,13 +20,12 @@ bool core::cFont::Initialize(unsigned int shader_id)
         return false;
     }
     FT_Face face;
-    if (FT_New_Face(ft, "data/fonts/Saira.ttf", 0, &face))
+    if (FT_New_Face(ft, filename, 0, &face))
     {
         LOG_ERROR("cFont::Initialize", "Failed to load freetype font")
         return false;
     }
-
-    FT_Set_Pixel_Sizes(face, 0, 28);
+    FT_Set_Pixel_Sizes(face, 0, font_size);
     unsigned int font_texture_id;
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for (unsigned char item = 0; item < 128; item++)
@@ -45,8 +44,8 @@ bool core::cFont::Initialize(unsigned int shader_id)
             0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         core::Glyph glyph = { font_texture_id,
             {(int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows},
             {(int)face->glyph->bitmap_left, (int)face->glyph->bitmap_top},
@@ -108,4 +107,13 @@ void core::cFont::RenderText(std::string text, int x, int y, float scale, sColor
     }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+
+void core::cFont::Destroy() const
+{
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &_vbo);
 }

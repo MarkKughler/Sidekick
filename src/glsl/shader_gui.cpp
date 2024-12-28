@@ -44,7 +44,7 @@ bool glsl::cShader_gui::Create()
     
     int status = S_OK;
     glGetShaderiv(_vs_id, GL_COMPILE_STATUS, &status);
-    if (status != 1) 
+    if (status != S_OK) 
     { 
         char info_log[1024] = "";
         LOG_ERROR("cShader_gui::Create", "Failed to compile gui vertex shader")
@@ -53,7 +53,7 @@ bool glsl::cShader_gui::Create()
         return false; 
     }
     glGetShaderiv(_fs_id, GL_COMPILE_STATUS, &status);
-    if (status != 1) 
+    if (status != S_OK) 
     { 
         char info_log[1024] = "";
         LOG_ERROR("cShader_gui::Create", "Failed to compile gui fragment shader")
@@ -69,7 +69,7 @@ bool glsl::cShader_gui::Create()
     glBindAttribLocation(_prog_id, 1, "in_color");
     glLinkProgram(_prog_id);
     glGetProgramiv(_prog_id, GL_LINK_STATUS, &status);
-    if (status != 1) 
+    if (status != S_OK) 
     { 
         char info_log[1024] = "";
         LOG_ERROR("cShader_gui::Create", "Failed to link gui shader program")
@@ -82,7 +82,7 @@ bool glsl::cShader_gui::Create()
 }
 
 
-void glsl::cShader_gui::Destroy()
+void glsl::cShader_gui::Destroy() const
 {
     glDetachShader(_prog_id, _vs_id);
     glDetachShader(_prog_id, _fs_id);
@@ -92,7 +92,7 @@ void glsl::cShader_gui::Destroy()
 }
 
 
-bool glsl::cShader_gui::SetParameters(float world[16])
+bool glsl::cShader_gui::SetParameters(float world[16]) const
 {
     glUseProgram(_prog_id);
     int location = glGetUniformLocation(_prog_id, "world");

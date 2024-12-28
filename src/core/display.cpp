@@ -75,9 +75,9 @@ bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, int width, int heig
 	wc.lpszClassName = class_name;
 	if (!RegisterClassEx(&wc)) return false;
 
-	DWORD style = WS_OVERLAPPEDWINDOW;
+	DWORD style = /*WS_POPUP*/ WS_SYSMENU | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
 	hWnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-		class_name, title, style, CW_USEDEFAULT, 0, width, height, nullptr, nullptr, wc.hInstance, this);
+		class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, wc.hInstance, this);
 
 	ogl.Create(hWnd);
 	ShowWindow(hWnd, SW_SHOW);

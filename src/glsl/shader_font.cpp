@@ -84,7 +84,7 @@ bool glsl::cShader_font::Create()
 }
 
 
-void glsl::cShader_font::Destroy()
+void glsl::cShader_font::Destroy() const
 {
     glDetachShader(prog_id, _vs_id);
     glDetachShader(prog_id, _fs_id);
@@ -94,7 +94,7 @@ void glsl::cShader_font::Destroy()
 }
 
 
-bool glsl::cShader_font::SetParameters(float world[16])
+bool glsl::cShader_font::SetParameters(float world[16]) const
 {
     // todo : all of this
     glUseProgram(prog_id);

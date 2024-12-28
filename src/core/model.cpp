@@ -37,7 +37,7 @@ bool core::cModel::Upload(int num_vertices, int num_indices, int num_vert_elemen
 }
 
 
-void core::cModel::Destroy()
+void core::cModel::Destroy() const
 {
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &_vao);
@@ -48,7 +48,7 @@ void core::cModel::Destroy()
 }
 
 
-void core::cModel::Render()
+void core::cModel::Render() const
 {
     glBindVertexArray(_vao);
     glDrawElements(GL_TRIANGLES, _indices_count, GL_UNSIGNED_INT, 0);

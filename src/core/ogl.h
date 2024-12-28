@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include "../types.h"
 
 namespace core
 {
@@ -14,8 +15,10 @@ namespace core
         bool Create(HWND in_hwnd);
         void SetState();
         void Reshape(int width, int height);
-        void Begin();
-        void End();
+        void Begin() const;
+        void End() const;
+
+        void GetOrtho(sMatrix&);
 
     private:
         int window_width = 0;

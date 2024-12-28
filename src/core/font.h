@@ -25,25 +25,33 @@ namespace core
 
         cFont();
         cFont(cFont&) = delete;
-        ~cFont() { /*empty destructor*/ }
+        ~cFont() { Destroy(); }
 
         /*
         Parameter Info:
         shader program id
+        font filename
+        font size
         */
-        bool Initialize(unsigned int);
+        bool Initialize(unsigned int, const char*, int);
 
+        
+        
         /*
         Parameter Info:
         text string
         screen position X
         screen position Y
-        percentage of font size (28px)
+        percentage of font size
         foreground color
         */
         void RenderText(std::string, int, int, float, sColor);
 
+       
+
     private:
+        
+        void Destroy() const;
         
         std::map<GLchar, core::Glyph> _glyphs;
         unsigned int _prog_id;
