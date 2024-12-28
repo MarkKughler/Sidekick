@@ -1,60 +1,70 @@
 
 #include "resource/targetver.h"
+#include "nublog.h"
+#include "types.h"
 #include "core/display.h"
-#include "core/shader_gui.h"
 #include "core/model.h"
-#include <string>
-#include <vector>
+#include "core/font.h"
+#include "glsl/shader_gui.h"
+#include "glsl/shader_font.h"
+
 
 // global variables
-#define MAX_LOADSTRING 128
-char szTitle[MAX_LOADSTRING];              // title bar text
-char szWindowClass[MAX_LOADSTRING];        // main window class name
+constexpr auto max_load_string = 128;
+char szTitle[max_load_string];             // title bar text
+char szWindowClass[max_load_string];       // main window class name
 
 HWND hwnd_parent;
 RECT rect_screen_workarea;                 // screen space (x, y, w, h)
 RECT rect_client_workarea;                 // client space (0, 0, w, h)
 
 
-core::cShader_gui shader_gui;
+glsl::cShader_gui shader_gui;
+glsl::cShader_font shader_font;
+
+core::cFont font;
 core::cModel model;
 
 struct Config
 {
-    std::vector<int> screen  = { 1024, 768 };
-    std::vector<int> monitor = {    0,   0 };
+    sDims screen  = {1024, 768};
+    sDims monitor = {   0,   0};
 } config;
 
 
 #ifdef NDEBUG
-int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev_instance, _In_ LPWSTR cmd_line, _In_ int cmd_show) {
+#pragma comment(lib, "../src/lib/freetype-2.13.3/freetype.lib")
+int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev_instance, _In_ LPSTR cmd_line, _In_ int cmd_show) {
 #else
 #pragma comment(linker, "/SUBSYSTEM:CONSOLE")
+#pragma comment(lib, "../src/lib/freetype-2.13.3/freetype_d.lib")
 int main(char* argc, int argv) {
     HINSTANCE instance = GetModuleHandle(0);
 #endif
 
-    LoadString(instance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadString(instance, IDC_SIDEKICK_CLASS, szWindowClass, MAX_LOADSTRING);
+    LoadString(instance, IDS_APP_TITLE, szTitle, max_load_string);
+    LoadString(instance, IDC_SIDEKICK_CLASS, szWindowClass, max_load_string);
     HACCEL hAccelTable = LoadAccelerators(instance, MAKEINTRESOURCE(IDC_SIDEKICK_ACC));
 
-    core::cDisplay display;
-    config.monitor[0] = GetSystemMetrics(SM_CXSCREEN);
-    config.monitor[1] = GetSystemMetrics(SM_CYSCREEN);
+    core::cDisplay display;                             //
+    config.monitor.x = GetSystemMetrics(SM_CXSCREEN);   // todo: work out these dimensions for accurate use cases
+    config.monitor.y = GetSystemMetrics(SM_CYSCREEN);   //
     rect_screen_workarea = { -SM_CXBORDER * 2 + 1, 1,  GetSystemMetrics(SM_CXMAXIMIZED) + 1, GetSystemMetrics(SM_CYMAXIMIZED) - int(SM_CYBORDER * 2) + 2 };
-    display.Create(szTitle, szWindowClass, config.screen[0], config.screen[1]);
+    display.Create(szTitle, szWindowClass, config.screen.x, config.screen.y);
     display.ogl.SetState();
     
     shader_gui.Create();
+    shader_font.Create();
 
-    // x, y, z, r, g, b
+    //                      x,     y,    z,    r,    g,    b
     float vdata[18] = { -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
                          0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-                         0.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f 
-                      };
+                         0.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f };
     unsigned int idata[3] = { 0, 1, 2 };
-    model.Upload(3, 3, 6, vdata, idata);
+    model.Upload(3, 3, 6, vdata, idata);                // todo: form binary data to this format
 
+    font.Initialize(shader_font.prog_id);
+    
 
     MSG msg = { 0 };
     while (GetMessage(&msg, nullptr, 0, 0))
@@ -69,67 +79,28 @@ int main(char* argc, int argv) {
         float world[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
         shader_gui.SetParameters(world);
         model.Render();
+
+        glDisable(GL_DEPTH_TEST);
+        float text_proj[16] = { 1.0f/(config.screen.x/2),0,0,-1,  0,-1.0f/(config.screen.y/2),0,1, 0,0,-1,0, 0,0,0,1 };
+        sColor color = { 0.9f, 0.9f, 0.9f };
+        glUseProgram(shader_font.prog_id);
+        glUniformMatrix4fv(glGetUniformLocation(shader_font.prog_id, "projection"), 1, false, text_proj);
+        font.RenderText("Sidekick v0.1.0 - 2024", 25.0f, 25.0f, 0.52f, color);
+        glEnable(GL_DEPTH_TEST);
+        
         display.ogl.End();
     }
 
  
+    
     model.Destroy();
     shader_gui.Destroy();
+    shader_font.Destroy();
     
     return (int)msg.wParam;
 }
 
 
-/*/ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-// Main Window Message Handler - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-LRESULT CALLBACK proc_Wnd(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    int wmId;
-
-    switch (message)
-    {
-
-    case WM_COMMAND:
-        wmId = LOWORD(wParam);
-        
-        switch (wmId)
-        {
-        case IDM_ABOUT:
-            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, proc_About);
-            break;
-
-
-        case IDM_RFI:
-            break;
-
-        case IDM_EXIT:
-            DestroyWindow(hWnd);
-            break;
-
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
-        break;
-
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
-        // TODO: Add any drawing code that uses hdc here...
-        EndPaint(hWnd, &ps);
-    }
-    break;
-
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
-}
-*/
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 // About Box Message handler - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

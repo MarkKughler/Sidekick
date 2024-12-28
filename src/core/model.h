@@ -13,7 +13,7 @@ namespace core
         ~cModel() { /*empty destructor*/ }
 
         /*
-        Info:
+        Parameter Info:
         number of vertices
         number of indices 
         number of float elements per vertex 
