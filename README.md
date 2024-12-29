@@ -27,6 +27,7 @@ Below are the milestones, if you will
   <li>[Commit 2023/02/26] <strike>Hello Win32 World</strike></li>
   <li>[Commit 2024/12/25] Added OpenGL 4.6 backend</li>
   <li>[Commit 2024/12/28] Added Freetype 2.13.3</li>
+  <li>[Commit 2024/12/29] Redesign of GUI setup</li>
   <li></li>
 </ul>
 
