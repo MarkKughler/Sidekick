@@ -5,8 +5,8 @@
 #include "core/display.h"
 #include "core/model.h"
 #include "core/font.h"
+#include "core/texture.h"
 #include "glsl/shader_gui.h"
-#include "glsl/shader_font.h"
 
 
 // global variables
@@ -20,11 +20,14 @@ RECT rect_client_workarea;                 // client space (0, 0, w, h)
 
 
 glsl::cShader_gui shader_gui;
-glsl::cShader_font shader_font;
 
 core::cFont font_ui;
+core::cFont font_ui_bold;
 
 core::cModel model;
+
+core::cTexture tex_gui;
+
 
 struct Config
 {
@@ -58,60 +61,100 @@ int main(char* argc, int argv) {
     config.monitor.x = GetSystemMetrics(SM_CXSCREEN);   // todo: work out these dimensions for accurate use cases
     config.monitor.y = GetSystemMetrics(SM_CYSCREEN);   //
     rect_screen_workarea = { -SM_CXBORDER * 2 + 1, 1,  GetSystemMetrics(SM_CXMAXIMIZED) + 1, GetSystemMetrics(SM_CYMAXIMIZED) - int(SM_CYBORDER * 2) + 2 };
-    display.Create(szTitle, szWindowClass, config.screen.x, config.screen.y);
+    display.Create(szTitle, szWindowClass, config.monitor.x, config.monitor.y);
     display.ogl.SetState();
     display.ogl.GetOrtho(config.ortho);
 
-    shader_gui.Create();
-    shader_font.Create();
+    tex_gui.Load("data/textures/gui.tga");
 
-    font_ui.Initialize(shader_font.prog_id, "data/fonts/Saira.ttf", 48);
+    shader_gui.Create();
+
+    font_ui.Initialize(shader_gui.prog_id, "data/fonts/Amble.ttf", 48);
+    font_ui_bold.Initialize(shader_gui.prog_id, "data/fonts/Amble-Bold.ttf", 48);
    
 
 
-    // nElements{5}  : pos, uv
-    // nElements{6}  : pos, color
-    // nElements{8}  : pos, normal, uv
-    // nElements{11} : pos, normal, uv, color
-    //                      x,     y,    z,    r,    g,    b
-    //float vdata[24] = { -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-    //                     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-    //                    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-    //                     0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f };
-    float vdata[24] = {   0, 100, 0, 0.135f, 0.135f, 0.137f,
-                        200, 100, 0, 0.135f, 0.135f, 0.137f,
-                          0,   0, 0, 0.135f, 0.135f, 0.137f,
-                        200,   0, 0, 0.135f, 0.135f, 0.137f
+    //                      x       y      u          v
+    float w = 200.0f;
+    float vdata_9sq[144] = {  0.0f,   8.0f, 0.0f,      0.015625f, // 0=>0.015625 0.015625=>0.03125 0.03125=>0.046875
+                              8.0f,   8.0f, 0.015625f, 0.015625f,
+                              0.0f,   0.0f, 0.0f,      0.0f,
+                              8.0f,   0.0f, 0.015625f, 0.0f,
+                              8.0f,   8.0f, 0.015625f, 0.012625f,
+                             16.0f+w, 8.0f, 0.03125f,  0.012625f,
+                              8.0f,   0.0f, 0.015625f, 0.0f,
+                             16.0f+w, 0.0f, 0.03125f,  0.0f,
+                             16.0f+w, 8.0f, 0.03125f,  0.012625f,
+                             24.0f+w, 8.0f, 0.046875f, 0.012625f,
+                             16.0f+w, 0.0f, 0.03125f,  0.0f,
+                             24.0f+w, 0.0f, 0.046875f, 0.0f,
+
+                              0.0f,   16.0f, 0.0f,      0.03125f, // 0=>0.015625 0.015625=>0.03125 0.03125=>0.046875
+                              8.0f,   16.0f, 0.015625f, 0.03125f,
+                              0.0f,    8.0f, 0.0f,      0.015625f,
+                              8.0f,    8.0f, 0.015625f, 0.015625f,
+                              8.0f,   16.0f, 0.015625f, 0.03125f,
+                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
+                              8.0f,    8.0f, 0.015625f, 0.015625f,
+                             16.0f+w,  8.0f, 0.03125f,  0.015625f,
+                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
+                             24.0f+w, 16.0f, 0.046875f, 0.03125f,
+                             16.0f+w,  8.0f, 0.03125f,  0.015625f,
+                             24.0f+w,  8.0f, 0.046875f, 0.015625f,
+
+                              0.0f,   24.0f, 0.0f,      0.046875f, // 0=>0.015625 0.015625=>0.03125 0.03125=>0.046875
+                              8.0f,   24.0f, 0.015625f, 0.046875f,
+                              0.0f,   16.0f, 0.0f,      0.03125f,
+                              8.0f,   16.0f, 0.015625f, 0.03125f,
+                              8.0f,   24.0f, 0.015625f, 0.046875f,
+                             16.0f+w, 24.0f, 0.03125f,  0.046875f,
+                              8.0f,   16.0f, 0.015625f, 0.03125f,
+                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
+                             16.0f+w, 24.0f, 0.03125f,  0.046875f,
+                             24.0f+w, 24.0f, 0.046875f, 0.046875f,
+                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
+                             24.0f+w, 16.0f, 0.046875f, 0.03125f                         
     };
-    unsigned int idata[6] = { 0, 1, 2, 2, 1, 3 };
-    model.Upload(4, 6, 6, vdata, idata);                // todo: form binary data to this format
+    unsigned int idata_9sq[54] = { 0,  1,  2,  2,  1,  3,   4,  5,  6,  6,  5,  7,   8,  9, 10, 10,  9, 11,
+                                  12, 13, 14, 14, 13, 15,  16, 17, 18, 18, 17, 19,  20, 21, 22, 22, 21, 23,
+                                  24, 25, 26, 26, 25, 27,  28, 29, 30, 30, 29, 31,  32, 33, 34, 34, 33, 35 };
+    model.Upload(36, 54, 4, vdata_9sq, idata_9sq);                // todo: form binary data to this format
 
     
-   
     MSG msg = { 0 };
-    while (GetMessage(&msg, nullptr, 0, 0))
+    while(1)
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
         }
+        if (msg.message == WM_QUIT) break;
+        
 
         display.ogl.Begin();
 
-        shader_gui.SetParameters(config.ortho.mtx);
-        model.Render();
-
         glDisable(GL_DEPTH_TEST);
+        glUseProgram(shader_gui.prog_id);
+        glUniformMatrix4fv(glGetUniformLocation(shader_gui.prog_id, "projection"), 1, false, config.ortho.mtx);
+        glUniform3f(glGetUniformLocation(shader_gui.prog_id, "color"), 0.0f, 0.5f, 1.0f);
+        tex_gui.Bind();
+        model.Render();
+        
         sColor color = { 0.9f, 0.9f, 0.9f };
-        glUseProgram(shader_font.prog_id);
-        glUniformMatrix4fv(glGetUniformLocation(shader_font.prog_id, "projection"), 1, false, config.ortho.mtx);
-        font_ui.RenderText("Sidekick v0.1.0 - 2024", 10.0f, 25.0f, 0.25f, color);
+        //glUseProgram(shader_font.prog_id);
+        //glUniformMatrix4fv(glGetUniformLocation(shader_font.prog_id, "projection"), 1, false, config.ortho.mtx);
+        font_ui.RenderText("Sidekick v0.1.0 - 2024", 10, 25, 0.29f, color);
+        font_ui_bold.RenderText("Sidekick v0.1.0 - 2024", 10, 40, 0.29f, color);
         glEnable(GL_DEPTH_TEST);
         
         display.ogl.End();
+
     }
-    
+
     return (int)msg.wParam;
 }
 

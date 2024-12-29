@@ -18,7 +18,7 @@ namespace core
 
 		bool Create(LPCSTR title, LPCSTR class_name, int width, int height);
 
-		static LRESULT CALLBACK MessageRouter(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+		static LRESULT CALLBACK MessageRelay(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	public:

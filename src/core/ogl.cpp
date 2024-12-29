@@ -82,7 +82,7 @@ bool core::cOGLContext::Create(HWND in_hwnd)
 
 void core::cOGLContext::SetState()
 {
-    glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
@@ -94,13 +94,18 @@ void core::cOGLContext::Reshape(int width, int height)
 {
     window_width = width;
     window_height = height;
-    // todo: resize viewport, resize buffers
+    screen_width = GetSystemMetrics(SM_CXSCREEN);
+    screen_height = GetSystemMetrics(SM_CYSCREEN);
+
+    static bool once = true;
+    if(!once) glViewport(0, window_height-screen_height, screen_width, screen_height);
+    once = false;
 }
 
 
 void core::cOGLContext::Begin() const
 {
-    glViewport(0, 0, window_width, window_height);
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
@@ -113,18 +118,21 @@ void core::cOGLContext::End() const
 
 void core::cOGLContext::GetOrtho(sMatrix &ortho)
 {   // column major, pixel dimension based
-    ortho.mtx[0]  =  1.0f / (window_width / 2); // left = 0px
+    ortho.mtx[0] = 1.0f / ((screen_width / 2.f)); // left = 0px
     ortho.mtx[1]  =  0.0f;
     ortho.mtx[2]  =  0.0f;
     ortho.mtx[3]  = -1.0f;
+
     ortho.mtx[4]  =  0.0f;
-    ortho.mtx[5]  = -1.0f / (window_height / 2); // top = 0px
+    ortho.mtx[5] = -1.0f / ((screen_height / 2.f)); // top = 0px
     ortho.mtx[6]  =  0.0f;
     ortho.mtx[7]  =  1.0f;
+
     ortho.mtx[8]  =  0.0f;
     ortho.mtx[9]  =  0.0f;
     ortho.mtx[10] = -1.0f;
     ortho.mtx[11] =  0.0f;
+
     ortho.mtx[12] =  0.0f;
     ortho.mtx[13] =  0.0f;
     ortho.mtx[14] =  0.0f;

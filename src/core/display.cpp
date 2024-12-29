@@ -4,7 +4,7 @@
 core::cDisplay::cDisplay() {}
 core::cDisplay::~cDisplay() {}
 
-LRESULT CALLBACK core::cDisplay::MessageRouter(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK core::cDisplay::MessageRelay(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	cDisplay* pDisplay;
 	if (msg == WM_CREATE) {
@@ -48,12 +48,17 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		}
 
 		break;
-	
+
 	case WM_KEYDOWN:
 		input_state[(int)wParam] = 1;
 		break;
-	
+
+	case WM_NCPAINT:
+	case WM_ERASEBKGND:
+		return 0;
+
 	}
+	
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
@@ -63,24 +68,23 @@ bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, int width, int heig
 	WNDCLASSEX wc = { 0 };
 	wc.cbSize = sizeof(WNDCLASSEXW);
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = MessageRouter;
+	wc.lpfnWndProc = MessageRelay;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
-	wc.hInstance = GetModuleHandle(nullptr);
+	wc.hInstance = GetModuleHandle(0);
 	wc.hIcon = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK));
 	wc.hIconSm = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK_SM));
 	wc.hCursor = LoadCursor(wc.hInstance, MAKEINTRESOURCE(IDC_CROSSHAIR));
-	wc.hbrBackground = CreateSolidBrush(RGB(35, 35, 35));
+	wc.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = class_name;
 	if (!RegisterClassEx(&wc)) return false;
 
-	DWORD style = /*WS_POPUP*/ WS_SYSMENU | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
-	hWnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-		class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, wc.hInstance, this);
+	DWORD style = WS_POPUP | WS_THICKFRAME | WS_VISIBLE ;
+	DWORD style_ex = WS_EX_APPWINDOW;// WS_EX_WINDOWEDGE;
+	hWnd = CreateWindowEx(style_ex, class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, wc.hInstance, this);
 
 	ogl.Create(hWnd);
-	ShowWindow(hWnd, SW_SHOW);
 	UpdateWindow(hWnd);
 
 	return true;

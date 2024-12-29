@@ -26,9 +26,8 @@ bool core::cModel::Upload(int num_vertices, int num_indices, int num_vert_elemen
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, vert_buffer_size, vert_data, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, vert_stride_size, 0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, vert_stride_size, (unsigned char*)nullptr + (3 * sizeof(float)));
+    glVertexAttribPointer(0, 4, GL_FLOAT, false, vert_stride_size, 0);
+    //glVertexAttribPointer(1, 2, GL_FLOAT, false, vert_stride_size, (unsigned char*)nullptr + (2 * sizeof(float)));
     glGenBuffers(1, &_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size, index_data, GL_STATIC_DRAW);

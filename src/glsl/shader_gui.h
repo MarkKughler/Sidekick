@@ -15,13 +15,14 @@ namespace glsl
         
         bool SetParameters(float[16]) const;
 
+        unsigned int prog_id;
+    
     private:
         
         void Destroy() const;
         
         unsigned int _vs_id;
         unsigned int _fs_id;
-        unsigned int _prog_id;
 
     };
 
