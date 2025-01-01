@@ -6,9 +6,14 @@ constexpr auto S_OK = 1;
 
 glsl::cShader_gui::cShader_gui()
 {
-    _vs_id = 0;
-    _fs_id = 0;
+    _vs_id   = 0;
+    _fs_id   = 0;
      prog_id = 0;
+
+     loc_projection  = 0;
+     loc_translation = 0;
+     loc_offset      = 0;
+     loc_color       = 0;
 }
 
 
@@ -18,10 +23,13 @@ bool glsl::cShader_gui::Create()
         #version 400
         in vec4 in_pos;
         out vec2 uv;
-        uniform mat4 projection;     
+        uniform mat4 projection;
+        uniform vec2 translation;    
+        uniform vec2 offset; 
         void main()  
         {   
-            gl_Position = vec4(in_pos.xy, 0.0, 1.0) * projection;
+            vec2 p = in_pos.xy + translation + offset;
+            gl_Position = vec4(p.xy, 0.0, 1.0) * projection;
             uv = in_pos.zw;
         };)";
 
@@ -46,19 +54,19 @@ bool glsl::cShader_gui::Create()
 
     int status = S_OK;
     glGetShaderiv(_vs_id, GL_COMPILE_STATUS, &status);
-    if (status != 1)
+    if (status != S_OK)
     {
         char info_log[1024] = "";
-        LOG_ERROR("cShader_font::Create", "Failed to compile font vertex shader")
+        LOG_ERROR("cShader_gui::Create", "Failed to compile gui vertex shader")
         glGetShaderInfoLog(_vs_id, 1024, 0, info_log);
         LOG_ERROR("Info Log", info_log)
         return false;
     }
     glGetShaderiv(_fs_id, GL_COMPILE_STATUS, &status);
-    if (status != 1)
+    if (status != S_OK)
     {
         char info_log[1024] = "";
-        LOG_ERROR("cShader_font::Create", "Failed to compile font fragment shader")
+        LOG_ERROR("cShader_gui::Create", "Failed to compile gui fragment shader")
         glGetShaderInfoLog(_fs_id, 1024, 0, info_log);
         LOG_ERROR("Info Log", info_log)
         return false;
@@ -71,15 +79,19 @@ bool glsl::cShader_gui::Create()
     glBindAttribLocation(prog_id, 1, "in_color");
     glLinkProgram(prog_id);
     glGetProgramiv(prog_id, GL_LINK_STATUS, &status);
-    if (status != 1)
+    if (status != S_OK)
     {
         char info_log[1024] = "";
-        LOG_ERROR("cShader_font::Create", "Failed to link font shader program")
+        LOG_ERROR("cShader_gui::Create", "Failed to link gui shader program")
         glGetProgramInfoLog(prog_id, 1024, 0, info_log);
         LOG_ERROR("Info Log", info_log)
         return false;
     }
 
+    loc_projection  = glGetUniformLocation(prog_id, "projection");
+    loc_translation = glGetUniformLocation(prog_id, "translation");
+    loc_offset      = glGetUniformLocation(prog_id, "offset");
+    loc_color       = glGetUniformLocation(prog_id, "color");
     return true;
 }
 

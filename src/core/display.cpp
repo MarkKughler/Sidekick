@@ -1,4 +1,5 @@
 #include "display.h"
+#include "../nublog.h"
 #include <iostream>
 
 core::cDisplay::cDisplay() {}
@@ -28,7 +29,7 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		break;
 
 	case WM_DESTROY:
-		std::cout << "--- NubExit ---" << std::endl;
+		LOG_INFO(core::cDisplay::WndProc, "===> Exiting Application")
 		CloseWindow(hwnd);
 		PostQuitMessage(0);
 		break;
@@ -80,8 +81,9 @@ bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, int width, int heig
 	wc.lpszClassName = class_name;
 	if (!RegisterClassEx(&wc)) return false;
 
-	DWORD style = WS_POPUP | WS_THICKFRAME | WS_VISIBLE ;
-	DWORD style_ex = WS_EX_APPWINDOW;// WS_EX_WINDOWEDGE;
+	DWORD style = WS_POPUP | WS_VISIBLE;// | WS_THICKFRAME;
+	//DWORD style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+	DWORD style_ex = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 	hWnd = CreateWindowEx(style_ex, class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, wc.hInstance, this);
 
 	ogl.Create(hWnd);

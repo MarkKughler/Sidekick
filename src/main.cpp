@@ -2,42 +2,54 @@
 #include "resource/targetver.h"
 #include "nublog.h"
 #include "types.h"
-#include "core/display.h"
-#include "core/model.h"
-#include "core/font.h"
-#include "core/texture.h"
+
 #include "glsl/shader_gui.h"
 
+#include "core/display.h"
+#include "core/font.h"
+#include "core/model.h"
+#include "core/texture.h"
 
-// global variables
+#include "gui/builder.h"
+
+
+// --------------------------- global variables ---------------------------------------
 constexpr auto max_load_string = 128;
 char szTitle[max_load_string];             // title bar text
 char szWindowClass[max_load_string];       // main window class name
-
 HWND hwnd_parent;
 RECT rect_screen_workarea;                 // screen space (x, y, w, h)
 RECT rect_client_workarea;                 // client space (0, 0, w, h)
 
-
-glsl::cShader_gui shader_gui;
-
 core::cFont font_ui;
 core::cFont font_ui_bold;
 
-core::cModel model;
+// -------------------------------- shaders ------------------------------------------- 
+glsl::cShader_gui shader_gui;
 
-core::cTexture tex_gui;
+
+// --------------------------------- models -------------------------------------------
+core::cModel frame01;                    
+core::cModel frame02;
+core::cModel frame_menu;
+
+// -------------------------------- textures ------------------------------------------
+core::cTexture tex_gui_atlas; 
 
 
-struct Config
+struct Config                                                     
 {
-    sDims screen  = {1024, 576};
+    sDims screen  = { 1024, 576 };
     sDims monitor = { 0, 0 };
     sMatrix ortho = { 0 };
 
 } config;
 
-
+   /*   ****  ****  *    ***  ***   **  ***** ***  ***  *   *    ***** *   * ***** ****  *   *
+  *  *  *   * *   * *     *  *     *  *   *    *  *   * **  *    *     **  *   *   *   * *   *
+  ****  ****  ****  *     *  *     ****   *    *  *   * * * *    ***   * * *   *   ****   * *
+ *    * *     *     *     *  *    *    *  *    *  *   * *  **    *     *  **   *   *  *    *
+ *    * *     *     **** ***  *** *    *  *   ***  ***  *   *    ****  *   *   *   *   *   */  
 #ifdef NDEBUG
 #pragma comment(lib, "../src/lib/freetype-2.13.3/freetype.lib")
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev_instance, _In_ LPSTR cmd_line, _In_ int cmd_show) {
@@ -64,63 +76,25 @@ int main(char* argc, int argv) {
     display.Create(szTitle, szWindowClass, config.monitor.x, config.monitor.y);
     display.ogl.SetState();
     display.ogl.GetOrtho(config.ortho);
-
-    tex_gui.Load("data/textures/gui.tga");
-
+    
     shader_gui.Create();
-
+    
     font_ui.Initialize(shader_gui.prog_id, "data/fonts/Amble.ttf", 48);
     font_ui_bold.Initialize(shader_gui.prog_id, "data/fonts/Amble-Bold.ttf", 48);
-   
+
+    gui::sBuilder builder;
+    sModelFormat f01, f02, fm;
+    frame01.Upload(shader_gui.prog_id, builder.NineSquare(f01, 226.0f, 0.0f));
+    frame02.Upload(shader_gui.prog_id, builder.NineSquare(f02, 226.0f, 300.0f));
+    frame_menu.Upload(shader_gui.prog_id, builder.GradSquare(fm, (float)config.monitor.x, 0.0f));
+    tex_gui_atlas.Load("data/textures/gui.tga");
 
 
-    //                      x       y      u          v
-    float w = 200.0f;
-    float vdata_9sq[144] = {  0.0f,   8.0f, 0.0f,      0.015625f, // 0=>0.015625 0.015625=>0.03125 0.03125=>0.046875
-                              8.0f,   8.0f, 0.015625f, 0.015625f,
-                              0.0f,   0.0f, 0.0f,      0.0f,
-                              8.0f,   0.0f, 0.015625f, 0.0f,
-                              8.0f,   8.0f, 0.015625f, 0.012625f,
-                             16.0f+w, 8.0f, 0.03125f,  0.012625f,
-                              8.0f,   0.0f, 0.015625f, 0.0f,
-                             16.0f+w, 0.0f, 0.03125f,  0.0f,
-                             16.0f+w, 8.0f, 0.03125f,  0.012625f,
-                             24.0f+w, 8.0f, 0.046875f, 0.012625f,
-                             16.0f+w, 0.0f, 0.03125f,  0.0f,
-                             24.0f+w, 0.0f, 0.046875f, 0.0f,
-
-                              0.0f,   16.0f, 0.0f,      0.03125f, // 0=>0.015625 0.015625=>0.03125 0.03125=>0.046875
-                              8.0f,   16.0f, 0.015625f, 0.03125f,
-                              0.0f,    8.0f, 0.0f,      0.015625f,
-                              8.0f,    8.0f, 0.015625f, 0.015625f,
-                              8.0f,   16.0f, 0.015625f, 0.03125f,
-                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
-                              8.0f,    8.0f, 0.015625f, 0.015625f,
-                             16.0f+w,  8.0f, 0.03125f,  0.015625f,
-                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
-                             24.0f+w, 16.0f, 0.046875f, 0.03125f,
-                             16.0f+w,  8.0f, 0.03125f,  0.015625f,
-                             24.0f+w,  8.0f, 0.046875f, 0.015625f,
-
-                              0.0f,   24.0f, 0.0f,      0.046875f, // 0=>0.015625 0.015625=>0.03125 0.03125=>0.046875
-                              8.0f,   24.0f, 0.015625f, 0.046875f,
-                              0.0f,   16.0f, 0.0f,      0.03125f,
-                              8.0f,   16.0f, 0.015625f, 0.03125f,
-                              8.0f,   24.0f, 0.015625f, 0.046875f,
-                             16.0f+w, 24.0f, 0.03125f,  0.046875f,
-                              8.0f,   16.0f, 0.015625f, 0.03125f,
-                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
-                             16.0f+w, 24.0f, 0.03125f,  0.046875f,
-                             24.0f+w, 24.0f, 0.046875f, 0.046875f,
-                             16.0f+w, 16.0f, 0.03125f,  0.03125f,
-                             24.0f+w, 16.0f, 0.046875f, 0.03125f                         
-    };
-    unsigned int idata_9sq[54] = { 0,  1,  2,  2,  1,  3,   4,  5,  6,  6,  5,  7,   8,  9, 10, 10,  9, 11,
-                                  12, 13, 14, 14, 13, 15,  16, 17, 18, 18, 17, 19,  20, 21, 22, 22, 21, 23,
-                                  24, 25, 26, 26, 25, 27,  28, 29, 30, 30, 29, 31,  32, 33, 34, 34, 33, 35 };
-    model.Upload(36, 54, 4, vdata_9sq, idata_9sq);                // todo: form binary data to this format
-
-    
+    sColor white   = { 0.9f,  0.9f,  0.9f };
+    sColor drkGray = { 0.09f, 0.11f, 0.2f };
+    sColor red     = { 1.0f,  0.0f,  0.0f };
+    sColor green   = { 0.0f,  1.0f,  0.0f };
+    sColor blue    = { 0.0f,  0.5f,  1.0f };
     MSG msg = { 0 };
     while(1)
     {
@@ -132,25 +106,27 @@ int main(char* argc, int argv) {
                 DispatchMessage(&msg);
             }
         }
-        if (msg.message == WM_QUIT) break;
-        
-
+        if (msg.message == WM_QUIT) break;;
+            
         display.ogl.Begin();
-
         glDisable(GL_DEPTH_TEST);
+
         glUseProgram(shader_gui.prog_id);
-        glUniformMatrix4fv(glGetUniformLocation(shader_gui.prog_id, "projection"), 1, false, config.ortho.mtx);
-        glUniform3f(glGetUniformLocation(shader_gui.prog_id, "color"), 0.0f, 0.5f, 1.0f);
-        tex_gui.Bind();
-        model.Render();
+        glUniformMatrix4fv(shader_gui.loc_projection, 1, false, config.ortho.mtx);
+        tex_gui_atlas.Bind();
         
-        sColor color = { 0.9f, 0.9f, 0.9f };
-        //glUseProgram(shader_font.prog_id);
-        //glUniformMatrix4fv(glGetUniformLocation(shader_font.prog_id, "projection"), 1, false, config.ortho.mtx);
-        font_ui.RenderText("Sidekick v0.1.0 - 2024", 10, 25, 0.29f, color);
-        font_ui_bold.RenderText("Sidekick v0.1.0 - 2024", 10, 40, 0.29f, color);
+        glUniform2f(shader_gui.loc_translation, 0.0f, 0.0f);
+        frame_menu.Render(0.0f, 0.0f, drkGray);
+        glUniform2f(shader_gui.loc_translation, 100.0f, 200.0f); // group translation
+        frame01.Render(0, 0, blue);
+        frame02.Render(0, 100, green);
+      
+        
+        glUniform2f(shader_gui.loc_offset, 0.0f, 7.0f); // glyph baseline offset
+        font_ui.RenderText("Sidekick v0.1.0 - 2024", 10, 30, 0.29f, white);
+        font_ui_bold.RenderText("Sidekick v0.1.0 - 2024", 10, 0, 0.29f, white);
+
         glEnable(GL_DEPTH_TEST);
-        
         display.ogl.End();
 
     }

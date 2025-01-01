@@ -40,8 +40,8 @@ namespace core
         /*
         Parameter Info:
         text string
-        screen position X
-        screen position Y
+        position X offset
+        position Y offset
         percentage of font size
         foreground color
         */

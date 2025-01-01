@@ -1,36 +1,37 @@
 #include "../lib/glad/glad_4_6.h"
+#include "../glsl/shader_gui.h"
 #include "model.h"
 
 
 core::cModel::cModel() 
 {
-    _indices_count = 0;
+    _num_indices = 0;
+    _prog_id = 0;
     _vao = 0;
     _vbo = 0;
     _ebo = 0;
 }
 
 
-bool core::cModel::Upload(int num_vertices, int num_indices, int num_vert_elements,
-                              float* vert_data, unsigned int* index_data)
+bool core::cModel::Upload(unsigned int shader_id, sModelFormat format)
 {
-    _indices_count = num_indices;
+    _prog_id = shader_id;
+    _num_indices = format.idata.size();
 
-    GLsizei    vert_stride_size  = num_vert_elements * sizeof(float);
-    GLsizeiptr vert_buffer_size  = num_vertices * vert_stride_size;
-    GLsizeiptr index_buffer_size = num_indices * sizeof(unsigned int);
+    GLsizei    vert_stride_size  = format.stride * sizeof(float);
+    GLsizeiptr vert_buffer_size  = format.vdata.size() * vert_stride_size;
+    GLsizeiptr index_buffer_size = format.idata.size() * sizeof(unsigned int);
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, vert_buffer_size, vert_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vert_buffer_size, &format.vdata[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, false, vert_stride_size, 0);
-    //glVertexAttribPointer(1, 2, GL_FLOAT, false, vert_stride_size, (unsigned char*)nullptr + (2 * sizeof(float)));
+    glVertexAttribPointer(0, 4, GL_FLOAT, false, vert_stride_size, 0); // format: { posX, posY, U, V }
     glGenBuffers(1, &_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size, index_data, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size, &format.idata[0], GL_STATIC_DRAW);
 
     return true; // todo: error check???
 }
@@ -47,8 +48,11 @@ void core::cModel::Destroy() const
 }
 
 
-void core::cModel::Render() const
+void core::cModel::Render(int x, int y, sColor color) const
 {
+    glUniform3f(glGetUniformLocation(_prog_id, "color"), color.r, color.g, color.b);
+    glUniform2f(glGetUniformLocation(_prog_id, "offset"), x, y);
     glBindVertexArray(_vao);
-    glDrawElements(GL_TRIANGLES, _indices_count, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, _num_indices, GL_UNSIGNED_INT, 0);
+    glUniform2f(glGetUniformLocation(_prog_id, "offset"), 0.0f, 0.0f); // reset position offset
 }

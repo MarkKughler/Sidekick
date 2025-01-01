@@ -1,4 +1,6 @@
 #pragma once
+#include "../types.h"
+#include "../gui/builder.h"
 
 namespace core
 {
@@ -14,22 +16,25 @@ namespace core
 
         /*
         Parameter Info:
-        number of vertices
-        number of indices 
-        number of float elements per vertex 
-        vertex data
-        index data 
+        shader program id
+        model format container
         */
-        bool Upload(int, int, int, float*, unsigned int*);
+        bool Upload(unsigned int, sModelFormat);
         
-        void Render() const;
+        /*
+        Parameter Info:
+            position X offset
+            position Y offset
+            RGB color
+        */
+        void Render(int, int, sColor) const;
 
     private:
         
         void Destroy() const;
 
-        int _indices_count;
-
+        int _num_indices;
+        unsigned int _prog_id;
         unsigned int _vao;
         unsigned int _vbo;
         unsigned int _ebo;

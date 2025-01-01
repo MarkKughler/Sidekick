@@ -33,10 +33,8 @@ namespace core
         bool LoadTarga32Bit(const char*);
 
     private:
-        unsigned char* _targaData;
+        unsigned char* _targaData; // todo: make std::vector???
         unsigned int _texture_id;
-        //ID3D11Texture2D* m_texture;
-        //ID3D11ShaderResourceView* m_textureView;
         int _width, _height;
 
     };
