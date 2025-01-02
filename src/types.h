@@ -7,15 +7,22 @@ struct sDims
     int y;
 };
 
+struct sSubDim
+{
+    size_t start;
+    size_t count;
+};
+
 struct sModelFormat
 {
-    // todo: rethink if num_verts, num_indices is needed
+    size_t num_verts;
+    size_t num_indices;
     int stride;
     std::vector<float> vdata;
     std::vector<unsigned int> idata;
 };
 
-struct sColor
+struct sRGB
 {
     float r;
     float g;
@@ -26,4 +33,12 @@ struct sMatrix
 {
     float mtx[16];
     // todo: math operations
+};
+
+struct sConfiguration
+{
+    bool is_maxamized;
+    sDims screen;
+    sDims monitor;
+    sMatrix ortho;
 };

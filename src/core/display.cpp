@@ -24,7 +24,18 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 	switch (msg)
 	{
 
+	case WM_MOUSEMOVE:
+		if (HIWORD(lParam) < 24) SetCursor(cursor_arrow);
+		else SetCursor(cursor_crosshair);
+		break;
+
+	case WM_LBUTTONDOWN:
+		lButtonDown = true;
+		break;
+	
 	case WM_SIZE:
+		pConfig->screen.x = LOWORD(lParam);
+		pConfig->screen.y = HIWORD(lParam);
 		ogl.Reshape(LOWORD(lParam), HIWORD(lParam));
 		break;
 
@@ -64,27 +75,31 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 }
 
 
-bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, int width, int height)
+bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, sConfiguration* config)
 {
+	pConfig = config;
+	HINSTANCE instance = GetModuleHandle(0);
+	cursor_crosshair = LoadCursor(instance, MAKEINTRESOURCE(IDC_CROSSHAIR));
+	cursor_arrow = LoadCursor(instance, MAKEINTRESOURCE(IDC_POINTER));
+
 	WNDCLASSEX wc = { 0 };
 	wc.cbSize = sizeof(WNDCLASSEXW);
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	wc.lpfnWndProc = MessageRelay;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
-	wc.hInstance = GetModuleHandle(0);
-	wc.hIcon = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK));
-	wc.hIconSm = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_SIDEKICK_SM));
-	wc.hCursor = LoadCursor(wc.hInstance, MAKEINTRESOURCE(IDC_CROSSHAIR));
+	wc.hInstance = instance;
+	wc.hIcon = LoadIcon(instance, MAKEINTRESOURCE(IDI_SIDEKICK));
+	wc.hIconSm = LoadIcon(instance, MAKEINTRESOURCE(IDI_SIDEKICK_SM));
+	wc.hCursor = cursor_crosshair;
 	wc.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = class_name;
 	if (!RegisterClassEx(&wc)) return false;
-
-	DWORD style = WS_POPUP | WS_VISIBLE;// | WS_THICKFRAME;
-	//DWORD style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+	
+	DWORD style = WS_POPUP | WS_VISIBLE;
 	DWORD style_ex = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-	hWnd = CreateWindowEx(style_ex, class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, wc.hInstance, this);
+	hWnd = CreateWindowEx(style_ex, class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, config->screen.x, config->screen.y, nullptr, nullptr, instance, this);
 
 	ogl.Create(hWnd);
 	UpdateWindow(hWnd);

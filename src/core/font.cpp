@@ -71,7 +71,7 @@ bool core::cFont::Initialize(unsigned int shader_id, const char* filename, int f
 }
 
 
-void core::cFont::RenderText(std::string text, int x, int y, float scale, sColor color)
+void core::cFont::RenderText(std::string text, int x, int y, float scale, sRGB color)
 {	
     glUniform3f(glGetUniformLocation(_prog_id, "color"), color.r, color.g, color.b);
     glActiveTexture(GL_TEXTURE0);

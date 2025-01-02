@@ -94,18 +94,18 @@ void core::cOGLContext::Reshape(int width, int height)
 {
     window_width = width;
     window_height = height;
-    screen_width = GetSystemMetrics(SM_CXSCREEN);
-    screen_height = GetSystemMetrics(SM_CYSCREEN);
-
+    
     static bool once = true;
-    if(!once) glViewport(0, window_height-screen_height, screen_width, screen_height);
+    if (!once)
+    {
+        glViewport(0, 0, width, height);
+    }
     once = false;
 }
 
 
 void core::cOGLContext::Begin() const
 {
-    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
@@ -118,13 +118,13 @@ void core::cOGLContext::End() const
 
 void core::cOGLContext::GetOrtho(sMatrix &ortho)
 {   // column major, pixel dimension based
-    ortho.mtx[0] = 1.0f / ((screen_width / 2.f)); // left = 0px
+    ortho.mtx[0] = 1.0f / ((window_width / 2.f)); // left = 0px
     ortho.mtx[1]  =  0.0f;
     ortho.mtx[2]  =  0.0f;
     ortho.mtx[3]  = -1.0f;
 
     ortho.mtx[4]  =  0.0f;
-    ortho.mtx[5] = -1.0f / ((screen_height / 2.f)); // top = 0px
+    ortho.mtx[5] = -1.0f / ((window_height / 2.f)); // top = 0px
     ortho.mtx[6]  =  0.0f;
     ortho.mtx[7]  =  1.0f;
 

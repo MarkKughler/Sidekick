@@ -23,8 +23,6 @@ namespace core
     private:
         int window_width = 0;
         int window_height = 0;
-        int screen_width = 0;
-        int screen_height = 0;
 
     private:
         HWND hwnd = nullptr;

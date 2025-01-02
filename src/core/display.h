@@ -16,7 +16,7 @@ namespace core
 		cDisplay();
 		~cDisplay();
 
-		bool Create(LPCSTR title, LPCSTR class_name, int width, int height);
+		bool Create(LPCSTR title, LPCSTR class_name, sConfiguration* config);
 
 		static LRESULT CALLBACK MessageRelay(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -26,6 +26,12 @@ namespace core
 		cOGLContext ogl;
 
 		int input_state[256] = { 0 };
+		bool lButtonDown = false;
+
+	private:
+		sConfiguration* pConfig;
+		HCURSOR cursor_crosshair;
+		HCURSOR cursor_arrow;
 	};
 	
 }

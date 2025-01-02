@@ -1,6 +1,8 @@
 #pragma once
 
+#include "../glsl/shader_gui.h"
 #include "../core/model.h"
+#include "../core/font.h"
 
 namespace gui
 {
@@ -14,17 +16,27 @@ namespace gui
         
         /*
         Parameter Info:
-            monitor width
+            shader program id
+            font
+            configuration pounter
         */
-        bool Create(int);
-        
+        bool Create(glsl::cShader_gui &shader, core::cFont &font, sConfiguration* config);
+
+        int Draw(int cur_pos_x, int cur_pos_y, bool lbutton_down);
+          
         
     private:
 
         void Destroy()
         { }
 
-        core::cModel background;
+        sConfiguration* _pConfig;
+        core::cModel _background;
+        core::cModel _favicon;
+        core::cModel _minimize;
+        core::cModel _maximize;
+        core::cModel _close;
+        core::cFont* _font;
 
     };
 

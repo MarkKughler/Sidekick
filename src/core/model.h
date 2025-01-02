@@ -17,9 +17,8 @@ namespace core
         /*
         Parameter Info:
         shader program id
-        model format container
         */
-        bool Upload(unsigned int, sModelFormat);
+        bool Upload(unsigned int);
         
         /*
         Parameter Info:
@@ -27,13 +26,14 @@ namespace core
             position Y offset
             RGB color
         */
-        void Render(int, int, sColor) const;
+        void Render(int, int, sRGB) const;
+
+        sModelFormat data;
 
     private:
         
         void Destroy() const;
 
-        int _num_indices;
         unsigned int _prog_id;
         unsigned int _vao;
         unsigned int _vbo;

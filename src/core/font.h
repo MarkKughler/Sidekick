@@ -45,7 +45,7 @@ namespace core
         percentage of font size
         foreground color
         */
-        void RenderText(std::string, int, int, float, sColor);
+        void RenderText(std::string, int, int, float, sRGB);
 
        
 
