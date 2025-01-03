@@ -32,7 +32,6 @@ glsl::cShader_gui shader_gui;
 // --------------------------------- models -------------------------------------------
 core::cModel frame01;                    
 core::cModel frame02;
-//core::cModel frame_menu;
 
 // -------------------------------- textures ------------------------------------------
 core::cTexture tex_gui_atlas; 
@@ -95,7 +94,7 @@ int main(char* argc, int argv) {
     frame01.Upload(shader_gui.prog_id);
     frame02.Upload(shader_gui.prog_id);
    
-    menubar.Create(shader_gui, font_ui, &config);
+    menubar.Create(shader_gui, &font_ui, &config);
 
 
     tex_gui_atlas.Load("data/textures/gui.tga");
@@ -133,27 +132,22 @@ int main(char* argc, int argv) {
         glUniform2f(shader_gui.loc_translation, 0.0f, 0.0f);
         tex_gui_atlas.Bind();
         
-       
+        
         int event = menubar.Draw(cursor_pos.x, cursor_pos.y, display.lButtonDown);
         switch (event)
         {
         case 1: PostQuitMessage(0); break; // todo: save working doc
-        case 2: if (config.is_maxamized)
-                {
-                    config.is_maxamized = false;
-                    ShowWindow(display.hWnd, SW_SHOWNORMAL);                 
-                    display.ogl.GetOrtho(config.ortho);
-                } else {
-                    config.is_maxamized = true;
-                    ShowWindow(display.hWnd, SW_SHOWMAXIMIZED); 
-
-                    display.ogl.GetOrtho(config.ortho);
-                }
+        case 2: if (config.is_maxamized) ShowWindow(display.hWnd, SW_SHOWNORMAL);
+                else ShowWindow(display.hWnd, SW_SHOWMAXIMIZED);
+                    
+                config.is_maxamized = !config.is_maxamized;
+                display.ogl.GetOrtho(config.ortho);
                 break;
         case 3: ShowWindow(display.hWnd, SW_SHOWMINIMIZED); break;
         default: break;
         }
         
+        tex_gui_atlas.Bind();
         glUniform2f(shader_gui.loc_translation, 100.0f, 200.0f); // group translation
         frame01.Render(0, 0, blue);
         frame02.Render(0, 100, green);

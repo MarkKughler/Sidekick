@@ -13,7 +13,7 @@ core::cModel::cModel()
 }
 
 
-bool core::cModel::Upload(unsigned int shader_id)//, sModelFormat format)
+bool core::cModel::Upload(unsigned int shader_id)
 {
     _prog_id = shader_id;
 
