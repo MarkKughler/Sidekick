@@ -32,6 +32,9 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 	case WM_LBUTTONDOWN:
 		lButtonDown = true;
 		break;
+	case WM_LBUTTONUP:
+		window_dragging = false;
+		break;
 	
 	case WM_SIZE:
 		pConfig->screen.x = LOWORD(lParam);

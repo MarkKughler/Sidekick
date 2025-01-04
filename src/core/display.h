@@ -27,6 +27,7 @@ namespace core
 
 		int input_state[256] = { 0 };
 		bool lButtonDown = false;
+		bool window_dragging = false;
 
 	private:
 		sConfiguration* pConfig;

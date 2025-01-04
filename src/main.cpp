@@ -36,17 +36,11 @@ core::cModel frame02;
 // -------------------------------- textures ------------------------------------------
 core::cTexture tex_gui_atlas; 
 
+
 // ---------------------------------- gui ---------------------------------------------
 gui::cMenubar menubar;
 
 
-/*struct Config
-{
-    sDims screen  = { 1024, 768 };
-    sDims monitor = { 0, 0 };
-    sMatrix ortho = { 0 };
-
-} config;*/
 
    /*   ****  ****  *    ***  ***   **  ***** ***  ***  *   *    ***** *   * ***** ****  *   *
   *  *  *   * *   * *     *  *     *  *   *    *  *   * **  *    *     **  *   *   *   * *   *
@@ -94,7 +88,7 @@ int main(char* argc, int argv) {
     frame01.Upload(shader_gui.prog_id);
     frame02.Upload(shader_gui.prog_id);
    
-    menubar.Create(shader_gui, &font_ui, &config);
+    menubar.Create(&shader_gui, &font_ui, &config);
 
 
     tex_gui_atlas.Load("data/textures/gui.tga");
@@ -106,6 +100,7 @@ int main(char* argc, int argv) {
     sRGB blue    = { 0.0f,  0.5f,  1.0f };
 
 
+    POINT last_cursor_pos = { 0 };
     MSG msg = { 0 };
     while(1)
     {
@@ -121,9 +116,13 @@ int main(char* argc, int argv) {
         }
         if (msg.message == WM_QUIT) break;
 
+       
         POINT cursor_pos = { 0 };
+        RECT  screen_pos = { 0 };
         GetCursorPos(&cursor_pos);
-            
+        GetWindowRect(display.hWnd, &screen_pos);
+        
+
         display.ogl.Begin();
         glDisable(GL_DEPTH_TEST);
 
@@ -133,7 +132,8 @@ int main(char* argc, int argv) {
         tex_gui_atlas.Bind();
         
         
-        int event = menubar.Draw(cursor_pos.x, cursor_pos.y, display.lButtonDown);
+        int event = menubar.Draw(cursor_pos.x-screen_pos.left, cursor_pos.y-screen_pos.top, display.lButtonDown);
+        if (display.window_dragging) event = 4;
         switch (event)
         {
         case 1: PostQuitMessage(0); break; // todo: save working doc
@@ -144,21 +144,36 @@ int main(char* argc, int argv) {
                 display.ogl.GetOrtho(config.ortho);
                 break;
         case 3: ShowWindow(display.hWnd, SW_SHOWMINIMIZED); break;
-        default: break;
+        case 4:
+                {
+                display.window_dragging = true;
+                int sp_x = screen_pos.left + (cursor_pos.x - last_cursor_pos.x);
+                int sp_y = screen_pos.top + (cursor_pos.y - last_cursor_pos.y);
+                if (sp_x < 0) sp_x = 0;
+                if (sp_y < 0) sp_y = 0;
+                if (sp_x + config.screen.x > config.monitor.x) sp_x = config.monitor.x - config.screen.x;
+                if (sp_y + config.screen.y > config.monitor.y) sp_y = config.monitor.y - config.screen.y;
+                MoveWindow(display.hWnd, sp_x, sp_y, config.screen.x, config.screen.y, FALSE);
+                break;
+                }
         }
         
+
         tex_gui_atlas.Bind();
         glUniform2f(shader_gui.loc_translation, 100.0f, 200.0f); // group translation
         frame01.Render(0, 0, blue);
         frame02.Render(0, 100, green);
       
         glUniform2f(shader_gui.loc_offset, 0.0f, 7.0f); // glyph baseline offset
-        font_ui.RenderText("Sidekick v0.1.0 - 2024", 10, 30, 0.29f, white);
-        font_ui_bold.RenderText("Sidekick v0.1.0 - 2024", 10, 0, 0.29f, white);
+        font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
+        font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 0, 0.29f, white);
 
         glEnable(GL_DEPTH_TEST);
         display.ogl.End();
 
+        
+ 
+        last_cursor_pos = cursor_pos;
     }
 
     return (int)msg.wParam;
