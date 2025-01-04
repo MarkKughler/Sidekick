@@ -4,10 +4,12 @@
 #include "types.h"
 
 #include "glsl/shader_gui.h"
+#include "glsl/shader_line.h"
 
 #include "core/display.h"
 #include "core/font.h"
 #include "core/model.h"
+#include "core/line.h"
 #include "core/texture.h"
 
 #include "gui/builder.h"
@@ -27,7 +29,7 @@ core::cFont font_ui_bold;
 
 // -------------------------------- shaders ------------------------------------------- 
 glsl::cShader_gui shader_gui;
-
+glsl::cShader_line shader_line;
 
 // --------------------------------- models -------------------------------------------
 core::cModel frame01;                    
@@ -78,6 +80,7 @@ int main(char* argc, int argv) {
     display.ogl.GetOrtho(config.ortho);
     
     shader_gui.Create();
+    shader_line.Create();
     
     font_ui.Initialize(shader_gui.prog_id, "data/fonts/Amble.ttf", 48);
     font_ui_bold.Initialize(shader_gui.prog_id, "data/fonts/Amble-Bold.ttf", 48);
@@ -90,7 +93,12 @@ int main(char* argc, int argv) {
    
     menubar.Create(&shader_gui, &font_ui, &config);
 
-
+    core::cLine line;
+    line.data.vdata = { 400, 50, 400, 400 };
+    line.Upload();
+    line.PushVertex(500, 400);
+    line.PushVertex(500, 300);
+    
     tex_gui_atlas.Load("data/textures/gui.tga");
 
     sRGB white   = { 0.9f,  0.9f,  0.9f };
@@ -161,12 +169,21 @@ int main(char* argc, int argv) {
 
         tex_gui_atlas.Bind();
         glUniform2f(shader_gui.loc_translation, 100.0f, 200.0f); // group translation
-        frame01.Render(0, 0, blue);
-        frame02.Render(0, 100, green);
+        frame01.Render(0.f, 0.f , blue);
+        frame02.Render(0.f, 100.f, green);
       
         glUniform2f(shader_gui.loc_offset, 0.0f, 7.0f); // glyph baseline offset
         font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
         font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 0, 0.29f, white);
+
+
+        sRGB red = { 1.f, 0.f, 0.f };
+        glUseProgram(shader_line.prog_id);
+        glUniformMatrix4fv(shader_line.loc_projection, 1, GL_FALSE, config.ortho.mtx);
+        glUniform2f(shader_line.loc_offset, 0.f, 0.f);
+        glUniform3f(shader_line.loc_color, red.r, red.g, red.b);
+        line.Render();
+
 
         glEnable(GL_DEPTH_TEST);
         display.ogl.End();

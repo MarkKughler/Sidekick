@@ -12,6 +12,16 @@ core::cModel::cModel()
     _ebo = 0;      // element buffer object
 }
 
+core::cModel::~cModel()
+{
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &_vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &_ebo);
+}
+
 
 bool core::cModel::Upload(unsigned int shader_id)
 {
@@ -27,27 +37,17 @@ bool core::cModel::Upload(unsigned int shader_id)
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, vert_buffer_size, &data.vdata[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, false, vert_stride_size, 0); // format: { posX, posY, U, V }
+    glVertexAttribPointer(0, 4, GL_FLOAT, false, vert_stride_size, (void*)0); // format: { posX, posY, U, V }
     glGenBuffers(1, &_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size, &data.idata[0], GL_STATIC_DRAW);
+    glBindVertexArray(0);
 
     return true; // todo: error check???
 }
 
 
-void core::cModel::Destroy() const
-{
-    glBindVertexArray(0);
-    glDeleteVertexArrays(1, &_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &_vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDeleteBuffers(1, &_ebo);
-}
-
-
-void core::cModel::Render(int x, int y, sRGB color) const
+void core::cModel::Render(float x, float y, sRGB color) const
 {
     glUniform3f(glGetUniformLocation(_prog_id, "color"), color.r, color.g, color.b);
     glUniform2f(glGetUniformLocation(_prog_id, "offset"), x, y);

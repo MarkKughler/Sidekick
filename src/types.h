@@ -22,6 +22,13 @@ struct sModelFormat
     std::vector<unsigned int> idata;
 };
 
+struct sLineFormat
+{
+    size_t num_verts;
+    int stride;
+    std::vector<float> vdata;
+};
+
 struct sRGB
 {
     float r;

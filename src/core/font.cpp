@@ -16,13 +16,13 @@ bool core::cFont::Initialize(unsigned int shader_id, const char* filename, int f
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
     {
-        LOG_ERROR("cFont::Initialize", "Could not initialize freetype library")
+        LOG_ERROR("cFont::Initialize", "Could not initialize freetype library");
         return false;
     }
     FT_Face face;
     if (FT_New_Face(ft, filename, 0, &face))
     {
-        LOG_ERROR("cFont::Initialize", "Failed to load freetype font")
+        LOG_ERROR("cFont::Initialize", "Failed to load freetype font");
         return false;
     }
     FT_Set_Pixel_Sizes(face, 0, font_size);
@@ -32,7 +32,7 @@ bool core::cFont::Initialize(unsigned int shader_id, const char* filename, int f
     {
         if (FT_Load_Char(face, item, FT_LOAD_RENDER))
         {
-            LOG_WARN("cFont::Initialize", "Failed to load glyph face")
+            LOG_WARN("cFont::Initialize", "Failed to load glyph face");
             continue;
         }
 

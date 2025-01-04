@@ -18,7 +18,7 @@ bool core::cTexture::Load(const char* filename)
 	if (!LoadTarga32Bit(filename))
 	{
 		std::string msg = "Failed to load texture ";
-		LOG_ERROR("core::cTexture::Load", msg + filename)
+		LOG_ERROR("core::cTexture::Load", msg + filename);
 		return false;
 	}
 

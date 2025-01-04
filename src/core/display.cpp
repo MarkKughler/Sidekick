@@ -43,7 +43,7 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		break;
 
 	case WM_DESTROY:
-		LOG_INFO(core::cDisplay::WndProc, "===> Exiting Application")
+		LOG_INFO("core::cDisplay::WndProc", "===> Exiting Application");
 		CloseWindow(hwnd);
 		PostQuitMessage(0);
 		break;

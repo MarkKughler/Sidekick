@@ -21,27 +21,27 @@ bool glsl::cShader_gui::Create()
 {
     const char* vsBuffer = R"(
         #version 400
-        in vec4 in_pos;
+        in vec4 pos;
         out vec2 uv;
         uniform mat4 projection;
         uniform vec2 translation;    
         uniform vec2 offset; 
         void main()  
         {   
-            vec2 p = in_pos.xy + translation + offset;
+            vec2 p = pos.xy + translation + offset;
             gl_Position = vec4(p.xy, 0.0, 1.0) * projection;
-            uv = in_pos.zw;
+            uv = pos.zw;
         };)";
 
     const char* fsBuffer = R"(
         #version 400
         in vec2 uv;
         out vec4 out_color;
-        uniform sampler2D text;
+        uniform sampler2D tex;
         uniform vec3 color;
         void main() 
         {
-            vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, uv).r);
+            vec4 sampled = vec4(1.0, 1.0, 1.0, texture(tex, uv).r);
             out_color = vec4(color, 1.0) * sampled;
         };)";
 
@@ -57,41 +57,43 @@ bool glsl::cShader_gui::Create()
     if (status != S_OK)
     {
         char info_log[1024] = "";
-        LOG_ERROR("cShader_gui::Create", "Failed to compile gui vertex shader")
+        LOG_ERROR("cShader_gui::Create", "Failed to compile gui vertex shader");
         glGetShaderInfoLog(_vs_id, 1024, 0, info_log);
-        LOG_ERROR("Info Log", info_log)
+        LOG_ERROR("Info Log", info_log);
         return false;
     }
     glGetShaderiv(_fs_id, GL_COMPILE_STATUS, &status);
     if (status != S_OK)
     {
         char info_log[1024] = "";
-        LOG_ERROR("cShader_gui::Create", "Failed to compile gui fragment shader")
+        LOG_ERROR("cShader_gui::Create", "Failed to compile gui fragment shader");
         glGetShaderInfoLog(_fs_id, 1024, 0, info_log);
-        LOG_ERROR("Info Log", info_log)
+        LOG_ERROR("Info Log", info_log);
         return false;
     }
 
     prog_id = glCreateProgram();
     glAttachShader(prog_id, _vs_id);
     glAttachShader(prog_id, _fs_id);
-    glBindAttribLocation(prog_id, 0, "in_pos");
-    glBindAttribLocation(prog_id, 1, "in_color");
+    glBindAttribLocation(prog_id, 0, "pos");
     glLinkProgram(prog_id);
     glGetProgramiv(prog_id, GL_LINK_STATUS, &status);
     if (status != S_OK)
     {
         char info_log[1024] = "";
-        LOG_ERROR("cShader_gui::Create", "Failed to link gui shader program")
+        LOG_ERROR("cShader_gui::Create", "Failed to link gui shader program");
         glGetProgramInfoLog(prog_id, 1024, 0, info_log);
-        LOG_ERROR("Info Log", info_log)
+        LOG_ERROR("Info Log", info_log);
         return false;
     }
+    glDeleteShader(_vs_id);
+    glDeleteShader(_fs_id);
 
     loc_projection  = glGetUniformLocation(prog_id, "projection");
     loc_translation = glGetUniformLocation(prog_id, "translation");
     loc_offset      = glGetUniformLocation(prog_id, "offset");
     loc_color       = glGetUniformLocation(prog_id, "color");
+    LOG_INFO("cShader_gui::Create", "shader program link success");
     return true;
 }
 

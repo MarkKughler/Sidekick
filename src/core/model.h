@@ -12,7 +12,7 @@ namespace core
 
         cModel();
         cModel(cModel&) = delete;
-        ~cModel() { Destroy(); }
+        ~cModel();
 
         /*
         Parameter Info:
@@ -26,14 +26,12 @@ namespace core
             position Y offset
             RGB color
         */
-        void Render(int, int, sRGB) const;
+        void Render(float x, float y, sRGB) const;
 
         sModelFormat data;
 
     private:
         
-        void Destroy() const;
-
         unsigned int _prog_id;
         unsigned int _vao;
         unsigned int _vbo;
