@@ -7,7 +7,6 @@ core::cLine::cLine()
     data.stride = 2;
     _vao = 0;
     _vbo = 0;        // todo: multiple buffers (ie: pos, color)
-    //_cbo = 0; ???
 }
 
 core::cLine::~cLine()

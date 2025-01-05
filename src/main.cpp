@@ -14,6 +14,7 @@
 
 #include "gui/builder.h"
 #include "gui/menubar.h"
+#include "gui/b_spline.h"
 
 
 // --------------------------- global variables ---------------------------------------
@@ -94,11 +95,15 @@ int main(char* argc, int argv) {
     menubar.Create(&shader_gui, &font_ui, &config);
 
     core::cLine line;
-    line.data.vdata = { 400, 50, 400, 400 };
+    line.data.vdata = { 400, 50, 400, 200 };
     line.Upload();
-    line.PushVertex(500, 400);
-    line.PushVertex(500, 300);
+    line.PushVertex(500, 200);
+    line.PushVertex(500, 100);
     
+    gui::cBSpline spline;
+    spline.Create({ 400, 300 }, { 600, 350 });
+
+
     tex_gui_atlas.Load("data/textures/gui.tga");
 
     sRGB white   = { 0.9f,  0.9f,  0.9f };
@@ -184,6 +189,7 @@ int main(char* argc, int argv) {
         glUniform3f(shader_line.loc_color, red.r, red.g, red.b);
         line.Render();
 
+        spline.Render();
 
         glEnable(GL_DEPTH_TEST);
         display.ogl.End();

@@ -13,6 +13,12 @@ struct sSubDim
     size_t count;
 };
 
+struct sPoint
+{
+    float x;
+    float y;
+};
+
 struct sModelFormat
 {
     size_t num_verts;
