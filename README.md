@@ -8,6 +8,8 @@ Tools that I want but too cheap to subscribe to them
    <li></li>
 </ul>
 
+### current state screenshot
+![Screenshot of current state Jan 5, 2025](/screenshots/screenshot_20250105.jpg)
 
 <h2>Getting Started Requirements</h2>
 <ul>
