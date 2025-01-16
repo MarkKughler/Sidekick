@@ -12,6 +12,7 @@ glsl::cShader_line::cShader_line()
 
      loc_projection = 0;
      loc_color      = 0;
+     loc_offset     = 0;
 }
 
 

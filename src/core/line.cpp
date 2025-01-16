@@ -22,7 +22,8 @@ bool core::cLine::Upload()
 {
     if (data.vdata.size() == 0) return false;
    
-    data.num_verts = data.vdata.size() / 2;
+    data.stride = 2;
+    data.num_verts = data.vdata.size();
     GLsizei    vert_stride_size = data.stride * sizeof(float);
     GLsizeiptr vert_buffer_size = data.num_verts * vert_stride_size;
 
@@ -40,7 +41,7 @@ bool core::cLine::Upload()
 }
 
 
-void core::cLine::Render(int startVertex, int numSegments)
+void core::cLine::Render(int startVertex, int numSegments) const
 {
     int count = 0;
     if (numSegments == 0 || numSegments >= data.num_verts - startVertex)
@@ -55,18 +56,16 @@ void core::cLine::Render(int startVertex, int numSegments)
 void core::cLine::PopVertex()
 {
     data.vdata.pop_back();
-    data.vdata.pop_back();
     data.num_verts--;
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, data.vdata.size() * sizeof(float), &data.vdata[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.vdata.size() * sizeof(sPoint), &data.vdata[0], GL_DYNAMIC_DRAW);
 }
 
 
-void core::cLine::PushVertex(float x, float y)
+void core::cLine::PushVertex(sPoint pt)
 {
-    data.vdata.push_back(x);
-    data.vdata.push_back(y);
+    data.vdata.push_back(pt);
     data.num_verts++;
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, data.vdata.size() * sizeof(float), &data.vdata[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.vdata.size() * sizeof(sPoint), &data.vdata[0], GL_DYNAMIC_DRAW);
 }

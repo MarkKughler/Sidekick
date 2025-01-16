@@ -14,7 +14,7 @@
 
 #include "gui/builder.h"
 #include "gui/menubar.h"
-#include "gui/b_spline.h"
+#include "gui/spline.h"
 
 
 // --------------------------- global variables ---------------------------------------
@@ -35,6 +35,8 @@ glsl::cShader_line shader_line;
 // --------------------------------- models -------------------------------------------
 core::cModel frame01;                    
 core::cModel frame02;
+core::cModel frame03;
+core::cModel frame04;
 
 // -------------------------------- textures ------------------------------------------
 core::cTexture tex_gui_atlas; 
@@ -89,20 +91,22 @@ int main(char* argc, int argv) {
     gui::sBuilder builder;
     builder.NineSquare(frame01.data, 226.0f, 0.0f);
     builder.NineSquare(frame02.data, 226.0f, 300.0f);
+    builder.NineSquare(frame03.data, 150.0f, 0.0f);
+    builder.NineSquare(frame04.data, 150.0f, 0.0f);
     frame01.Upload(shader_gui.prog_id);
     frame02.Upload(shader_gui.prog_id);
+    frame03.Upload(shader_gui.prog_id);
+    frame04.Upload(shader_gui.prog_id);
    
     menubar.Create(&shader_gui, &font_ui, &config);
 
     core::cLine line;
-    line.data.vdata = { 400, 50, 400, 200 };
+    line.data.vdata = { {350, 211}, {371, 211} };
     line.Upload();
-    line.PushVertex(500, 200);
-    line.PushVertex(500, 100);
+    line.PushVertex({ 530, 310 });
+    line.PushVertex({ 549, 310 });
     
-    gui::cBSpline spline;
-    spline.Create({ 400, 300 }, { 600, 350 });
-
+    gui::cSpline spline({ 350, 320 }, { 549, 420 });
 
     tex_gui_atlas.Load("data/textures/gui.tga");
 
@@ -176,13 +180,15 @@ int main(char* argc, int argv) {
         glUniform2f(shader_gui.loc_translation, 100.0f, 200.0f); // group translation
         frame01.Render(0.f, 0.f , blue);
         frame02.Render(0.f, 100.f, green);
+        frame03.Render(449.0f, 99.0f, blue);
+        frame04.Render(449.0f, 208.0f, green);
       
         glUniform2f(shader_gui.loc_offset, 0.0f, 7.0f); // glyph baseline offset
         font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
         font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 0, 0.29f, white);
 
 
-        sRGB red = { 1.f, 0.f, 0.f };
+        sRGB red = { 0.9f, 0.9f, 0.9f };
         glUseProgram(shader_line.prog_id);
         glUniformMatrix4fv(shader_line.loc_projection, 1, GL_FALSE, config.ortho.mtx);
         glUniform2f(shader_line.loc_offset, 0.f, 0.f);

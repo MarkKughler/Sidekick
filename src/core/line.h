@@ -12,8 +12,8 @@ namespace core
         ~cLine();
 
         bool Upload();
-        void Render(int startVertex = 0, int numSegments = 0);
-        void PushVertex(float, float);
+        void Render(int startVertex = 0, int numSegments = 0) const;
+        void PushVertex(sPoint pt);
         void PopVertex();
 
         sLineFormat data;

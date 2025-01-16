@@ -1,6 +1,12 @@
 #pragma once
 #include <vector>
 
+constexpr float pi    = 3.1415926535897932384626433832795f;
+constexpr float twopi = 6.283185307179586476925286766559f;
+constexpr float hlfpi = 1.5707963267948966192313216916398f;
+static float degtorad(float deg) { return deg * 0.01745329251994329576923690768489f; }
+static float radtodeg(float rad) { return rad / 0.01745329251994329576923690768489f; }
+
 struct sDims
 {
     int x;
@@ -19,6 +25,25 @@ struct sPoint
     float y;
 };
 
+struct sVec2
+{
+    float x;
+    float y;
+
+    inline float dot(const sVec2& v1, const sVec2& v2)
+    {
+        return v1.x * v2.x + v1.y * v2.y;
+    }
+
+    inline void normalize()
+    {
+        float ln = sqrtf((x * x) + (y * y));
+        x *= ln;
+        y *= ln;
+    }
+
+};
+
 struct sModelFormat
 {
     size_t num_verts;
@@ -32,7 +57,7 @@ struct sLineFormat
 {
     size_t num_verts;
     int stride;
-    std::vector<float> vdata;
+    std::vector<sPoint> vdata;
 };
 
 struct sRGB
