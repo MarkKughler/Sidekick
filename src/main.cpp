@@ -5,6 +5,7 @@
 
 #include "glsl/shader_gui.h"
 #include "glsl/shader_line.h"
+#include "glsl/shader_vert_color.h"
 
 #include "core/display.h"
 #include "core/font.h"
@@ -15,6 +16,7 @@
 #include "gui/builder.h"
 #include "gui/menubar.h"
 #include "gui/spline.h"
+#include "gui/nodeLink.h"
 
 
 // --------------------------- global variables ---------------------------------------
@@ -31,12 +33,14 @@ core::cFont font_ui_bold;
 // -------------------------------- shaders ------------------------------------------- 
 glsl::cShader_gui shader_gui;
 glsl::cShader_line shader_line;
+glsl::cShader_vert_color shader_vert_color;
 
 // --------------------------------- models -------------------------------------------
 core::cModel frame01;                    
 core::cModel frame02;
 core::cModel frame03;
 core::cModel frame04;
+core::cModel frame05;
 
 // -------------------------------- textures ------------------------------------------
 core::cTexture tex_gui_atlas; 
@@ -59,7 +63,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev_instance, _I
 #include <crtdbg.h>
 #pragma comment(linker, "/SUBSYSTEM:CONSOLE")
 #pragma comment(lib, "../src/lib/freetype-2.13.3/freetype_d.lib")
-int main(char* argc, int argv) {
+int main(int argc, char* argv[]) {
     _CrtSetDbgFlag(_CRTDBG_LEAK_CHECK_DF | _CRTDBG_ALLOC_MEM_DF);
     _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
     _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
@@ -84,6 +88,7 @@ int main(char* argc, int argv) {
     
     shader_gui.Create();
     shader_line.Create();
+    shader_vert_color.Create();
     
     font_ui.Initialize(shader_gui.prog_id, "data/fonts/Amble.ttf", 48);
     font_ui_bold.Initialize(shader_gui.prog_id, "data/fonts/Amble-Bold.ttf", 48);
@@ -93,10 +98,12 @@ int main(char* argc, int argv) {
     builder.NineSquare(frame02.data, 226.0f, 300.0f);
     builder.NineSquare(frame03.data, 150.0f, 0.0f);
     builder.NineSquare(frame04.data, 150.0f, 0.0f);
+    builder.NineSquare(frame05.data, 150.0f, 0.0f);
     frame01.Upload(shader_gui.prog_id);
     frame02.Upload(shader_gui.prog_id);
     frame03.Upload(shader_gui.prog_id);
     frame04.Upload(shader_gui.prog_id);
+    frame05.Upload(shader_gui.prog_id);
    
     menubar.Create(&shader_gui, &font_ui, &config);
 
@@ -107,6 +114,12 @@ int main(char* argc, int argv) {
     line.PushVertex({ 549, 310 });
     
     gui::cSpline spline({ 350, 320 }, { 549, 420 });
+    
+    gui::cLink link({350, 350}, {371, 500}, {528, 500}, {549, 460});
+    gui::cLinkContainer link_container;
+    link_container.Initialize();
+    link_container.Add(link);
+    
 
     tex_gui_atlas.Load("data/textures/gui.tga");
 
@@ -182,20 +195,21 @@ int main(char* argc, int argv) {
         frame02.Render(0.f, 100.f, green);
         frame03.Render(449.0f, 99.0f, blue);
         frame04.Render(449.0f, 208.0f, green);
+        frame05.Render(449.0f, 248.0f, green);
       
         glUniform2f(shader_gui.loc_offset, 0.0f, 7.0f); // glyph baseline offset
         font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
         font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 0, 0.29f, white);
 
 
-        sRGB red = { 0.9f, 0.9f, 0.9f };
+        sRGB line_color = { 0.9f, 0.9f, 0.9f };
         glUseProgram(shader_line.prog_id);
         glUniformMatrix4fv(shader_line.loc_projection, 1, GL_FALSE, config.ortho.mtx);
         glUniform2f(shader_line.loc_offset, 0.f, 0.f);
-        glUniform3f(shader_line.loc_color, red.r, red.g, red.b);
+        glUniform3f(shader_line.loc_color, line_color.r, line_color.g, line_color.b);
         line.Render();
-
         spline.Render();
+        link_container.Render(shader_line.loc_color);
 
         glEnable(GL_DEPTH_TEST);
         display.ogl.End();

@@ -103,9 +103,10 @@ bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, sConfiguration* con
 	DWORD style = WS_POPUP | WS_VISIBLE;
 	DWORD style_ex = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 	hWnd = CreateWindowEx(style_ex, class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, config->screen.x, config->screen.y, nullptr, nullptr, instance, this);
-
+	//UpdateWindow(hWnd);
+	//ShowWindow(hWnd, SW_SHOWNORMAL);
 	ogl.Create(hWnd);
-	UpdateWindow(hWnd);
+	
 
 	return true;
 }

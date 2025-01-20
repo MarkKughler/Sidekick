@@ -30,20 +30,32 @@ core::cOGLContext::~cOGLContext()
 bool core::cOGLContext::Create(HWND in_hwnd)
 {
     hwnd = in_hwnd;
-    hdc = GetDC(hwnd);
+    hdc = GetDC(in_hwnd);
+    
+    PIXELFORMATDESCRIPTOR pfd = {
+    sizeof(PIXELFORMATDESCRIPTOR),  // size of this pfd  
+    1,                              // version number  
+    PFD_DRAW_TO_WINDOW |            // support window  
+    PFD_SUPPORT_OPENGL |            // support OpenGL  
+    PFD_DOUBLEBUFFER,               // double buffered  
+    PFD_TYPE_RGBA,                  // RGBA type  
+    24,                             // 24-bit color depth  
+    0, 0, 0, 0, 0, 0,               // color bits ignored  
+    0,                              // no alpha buffer  
+    0,                              // shift bit ignored  
+    0,                              // no accumulation buffer  
+    0, 0, 0, 0,                     // accum bits ignored  
+    32,                             // 32-bit z-buffer      
+    0,                              // no stencil buffer  
+    0,                              // no auxiliary buffer  
+    PFD_MAIN_PLANE,                 // main layer  
+    0,                              // reserved  
+    0, 0, 0                         // layer masks ignored  
+    };
 
-    PIXELFORMATDESCRIPTOR pfd;
-    memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
-    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 24;
-    pfd.cDepthBits = 32;
-    pfd.cStencilBits = 8;
-    pfd.iLayerType = PFD_MAIN_PLANE;
     int pixel_format = ChoosePixelFormat(hdc, &pfd);
-    if (pixel_format == 0) return false;
-    if (!SetPixelFormat(hdc, pixel_format, &pfd)) return false;
+    if (pixel_format == 0) { std::cout << "ChoosePixelFormat failed\n"; return false; }
+    if (!SetPixelFormat(hdc, pixel_format, &pfd)) { std::cout << "SetPixelFormat failed\n"; return false; }
 
     HGLRC ogl_rc = wglCreateContext(hdc);
     wglMakeCurrent(hdc, ogl_rc);
@@ -58,7 +70,7 @@ bool core::cOGLContext::Create(HWND in_hwnd)
         WGL_CONTEXT_COREPROFILE_BIT, 0,
     };
     hrc = wglCreateContextAttribs(hdc, 0, attribute_list);
-    wglMakeCurrent(nullptr, nullptr);
+    wglMakeCurrent(nullptr, nullptr);   
     wglDeleteContext(ogl_rc);
     wglMakeCurrent(hdc, hrc);
     if (!gladLoadGL()) std::cout << "Could not load OpenGL functions" << std::endl;

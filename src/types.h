@@ -25,6 +25,14 @@ struct sPoint
     float y;
 };
 
+struct sRect
+{
+    int x;
+    int y;
+    int w;
+    int h;
+};
+
 struct sVec2
 {
     float x;
@@ -53,6 +61,13 @@ struct sModelFormat
     std::vector<unsigned int> idata;
 };
 
+struct sRGB
+{
+    float r;
+    float g;
+    float b;
+};
+
 struct sLineFormat
 {
     size_t num_verts;
@@ -60,12 +75,8 @@ struct sLineFormat
     std::vector<sPoint> vdata;
 };
 
-struct sRGB
-{
-    float r;
-    float g;
-    float b;
-};
+
+
 
 struct sMatrix
 {

@@ -45,9 +45,10 @@ void gui::cSpline::GenerateSegments()
 {
     sPoint p1 = { _controlPoints[1].x, _controlPoints[1].y };
     sPoint p2 = { _controlPoints[2].x, _controlPoints[2].y };
-    float dx = (p2.x > p1.x) ? (p2.x - p1.x)/20 : -(p1.x - p2.x)/20;
-    float dy = (p2.y > p1.y) ? (p2.y - p1.y)/20 : -(p1.y - p2.y)/20;
-
+    float dx = (p2.x > p1.x) ? (p2.x - p1.x)/20.f : -(p1.x - p2.x)/20.f;
+    float dy = (p2.y > p1.y) ? (p2.y - p1.y)/20.f : -(p1.y - p2.y)/20.f;
+    //float dx = (p2.x - p1.x) / 20;
+    //float dy = (p2.y - p1.y) / 20;
     _spline.data.vdata.push_back(_controlPoints[0]);
     _spline.data.vdata.push_back(_controlPoints[1]);
     for (int i = 0; i < 20; i++)
