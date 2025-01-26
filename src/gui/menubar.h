@@ -42,7 +42,7 @@ namespace gui
         core::cModel _close;                // icon close
         core::cModel _cfFile;               // menu item child frame background
         core::cModel _cfEdit;               // menu item child frame background
-        core::cModel _cfMode;                // menu item child frame background
+        core::cModel _cfMode;               // menu item child frame background
         
         struct sMenuItem
         {
@@ -54,7 +54,7 @@ namespace gui
             core::cModel icon;
             std::string label  = "\0";
             char shortcut      = ' '; // ????
-            //std::vector<sMenuItem> children;
+            
             std::vector<std::string> children;
 
             void Init(std::string in_label, sDims in_pos)

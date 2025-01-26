@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     builder.NineSquare(frame02.data, 226.0f, 300.0f);
     builder.NineSquare(frame03.data, 150.0f, 0.0f);
     builder.NineSquare(frame04.data, 150.0f, 0.0f);
-    builder.NineSquare(frame05.data, 150.0f, 0.0f);
+    builder.NineSquare(frame05.data, 150.0f, 60.0f);
     frame01.Upload(shader_gui.prog_id);
     frame02.Upload(shader_gui.prog_id);
     frame03.Upload(shader_gui.prog_id);
@@ -107,18 +107,22 @@ int main(int argc, char* argv[]) {
    
     menubar.Create(&shader_gui, &font_ui, &config);
 
-    core::cLine line;
+    /*core::cLine line;
     line.data.vdata = { {350, 211}, {371, 211} };
     line.Upload();
     line.PushVertex({ 530, 310 });
-    line.PushVertex({ 549, 310 });
+    line.PushVertex({ 549, 310 });*/
     
     gui::cSpline spline({ 350, 320 }, { 549, 420 });
     
-    gui::cLink link({350, 350}, {371, 500}, {528, 500}, {549, 460});
+    gui::cLink link1({350, 211}, {371, 211}, {530, 310}, {549, 310});
+    gui::cLink link3({350, 350}, {381, 500}, {518, 500}, {549, 460});
+    gui::cLink link4({350, 380}, {371, 510}, {528, 510}, {549, 490});
     gui::cLinkContainer link_container;
-    link_container.Initialize();
-    link_container.Add(link);
+    link_container.Initialize(10);
+    link_container.Push(link1);
+    link_container.Push(link3);
+    link_container.Push(link4);
     
 
     tex_gui_atlas.Load("data/textures/gui.tga");
@@ -130,29 +134,26 @@ int main(int argc, char* argv[]) {
     sRGB blue    = { 0.0f,  0.5f,  1.0f };
 
 
-    POINT last_cursor_pos = { 0 };
+    POINT last_cursor_screen_pos = { 0 };
     MSG msg = { 0 };
     while(1)
     {
-        display.lButtonDown = false;
-
+        // main message pump ---------------------------------------------------
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
-            if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-            {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
         }
         if (msg.message == WM_QUIT) break;
 
-       
-        POINT cursor_pos = { 0 };
+        // mouse cursor information --------------------------------------------
+        POINT cursor_screen_pos = { 0 };
+        GetCursorPos(&cursor_screen_pos);
         RECT  screen_pos = { 0 };
-        GetCursorPos(&cursor_pos);
         GetWindowRect(display.hWnd, &screen_pos);
-        
+        sPoint cursor_client_pos = { static_cast<float>(cursor_screen_pos.x) - screen_pos.left, static_cast<float>(cursor_screen_pos.y) - screen_pos.top };
 
+        // screen draw ---------------------------------------------------------
         display.ogl.Begin();
         glDisable(GL_DEPTH_TEST);
 
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]) {
         tex_gui_atlas.Bind();
         
         
-        int event = menubar.Draw(cursor_pos.x-screen_pos.left, cursor_pos.y-screen_pos.top, display.lButtonDown);
+        int event = menubar.Draw(cursor_client_pos.x, cursor_client_pos.y, display.lButtonDown);
         if (display.window_dragging) event = 4;
         switch (event)
         {
@@ -177,8 +178,8 @@ int main(int argc, char* argv[]) {
         case 4:
                 {
                 display.window_dragging = true;
-                int sp_x = screen_pos.left + (cursor_pos.x - last_cursor_pos.x);
-                int sp_y = screen_pos.top + (cursor_pos.y - last_cursor_pos.y);
+                int sp_x = screen_pos.left + (cursor_screen_pos.x - last_cursor_screen_pos.x);
+                int sp_y = screen_pos.top + (cursor_screen_pos.y - last_cursor_screen_pos.y);
                 if (sp_x < 0) sp_x = 0;
                 if (sp_y < 0) sp_y = 0;
                 if (sp_x + config.screen.x > config.monitor.x) sp_x = config.monitor.x - config.screen.x;
@@ -207,16 +208,24 @@ int main(int argc, char* argv[]) {
         glUniformMatrix4fv(shader_line.loc_projection, 1, GL_FALSE, config.ortho.mtx);
         glUniform2f(shader_line.loc_offset, 0.f, 0.f);
         glUniform3f(shader_line.loc_color, line_color.r, line_color.g, line_color.b);
-        line.Render();
+        //line.Render();
         spline.Render();
-        link_container.Render(shader_line.loc_color);
+
+
+
+        glUseProgram(shader_vert_color.prog_id);
+        glUniformMatrix4fv(shader_vert_color.loc_projection, 1, GL_FALSE, config.ortho.mtx);
+        glUniform2f(shader_vert_color.loc_offset, 0.f, 0.f);
+        link_container.Render(cursor_client_pos, display.lButtonDown);
+
+
 
         glEnable(GL_DEPTH_TEST);
         display.ogl.End();
 
         
  
-        last_cursor_pos = cursor_pos;
+        last_cursor_screen_pos = cursor_screen_pos;
     }
 
     return (int)msg.wParam;

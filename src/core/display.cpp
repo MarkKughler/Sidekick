@@ -33,6 +33,7 @@ LRESULT CALLBACK core::cDisplay::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		lButtonDown = true;
 		break;
 	case WM_LBUTTONUP:
+		lButtonDown = false;
 		window_dragging = false;
 		break;
 	
@@ -103,10 +104,8 @@ bool core::cDisplay::Create(LPCSTR title, LPCSTR class_name, sConfiguration* con
 	DWORD style = WS_POPUP | WS_VISIBLE;
 	DWORD style_ex = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 	hWnd = CreateWindowEx(style_ex, class_name, title, style, CW_USEDEFAULT, CW_USEDEFAULT, config->screen.x, config->screen.y, nullptr, nullptr, instance, this);
-	//UpdateWindow(hWnd);
-	//ShowWindow(hWnd, SW_SHOWNORMAL);
+
 	ogl.Create(hWnd);
-	
 
 	return true;
 }
