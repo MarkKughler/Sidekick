@@ -28,6 +28,7 @@ namespace gui
     {
     public:
         void Initialize(int allocation_size);
+        void BeginNewLink(sPoint start);
         void Push(cLink &item);
         void Pop(int slot_id);
      
@@ -35,14 +36,19 @@ namespace gui
 
         std::vector<cLink> links;    // cLink container
         int capacity = -1;           // max number of cLink objects before a memory resize required 
+        
 
     private:
         unsigned int _vao = 0;
         unsigned int _vbo = 0;
+        bool is_dragging_new_link = false;
+        
+
 
         void UpdateSegmentColor(unsigned int id, int slot);
         void UpdateCtrlPtPos(unsigned int id, int slot, sPoint mouse_pos);
         void ResetLinkColor(unsigned int id);
+        void ResizeGpuBuffer();
     };
 
 }

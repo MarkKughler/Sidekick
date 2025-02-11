@@ -7,6 +7,64 @@ namespace gui
         /*
         Parameter Info:
             model data destination
+            number of inputs
+            desired width offset (default 24px)
+        */
+        void NodeFrame(sModelFormat &model, int nInputs, float w)
+        {
+            model.num_verts = 12;
+            model.num_indices = 18;
+            model.stride = 4;
+
+            model.vdata = {                                            
+                0.0f,     24.0f,    0.195312f, 0.046875f, // header left
+                8.0f,     24.0f,    0.208984f, 0.046875f,
+                0.0f,      0.0f,    0.195312f, 0.0f,
+                8.0f,      0.0f,    0.208984f, 0.0f,
+                8.0f,     24.0f,    0.208984f, 0.046875f, // header center
+               16.0f + w, 24.0f,    0.228515f, 0.046875f,
+                8.0f,      0.0f,    0.208984f, 0.0f,
+               16.0f + w,  0.0f,    0.228515f, 0.0f,
+               16.0f + w, 24.0f,    0.228515f, 0.046875f, // header right
+               24.0f + w, 24.0f,    0.240234f, 0.046875f,
+               16.0f + w,  0.0f,    0.228515f, 0.0f,
+               24.0f + w,  0.0f,    0.240234f, 0.0f,
+
+               0.0f,       
+               8.0f,      
+               0.0f,      24.0f,
+               8.0f,      24.0f,
+               8.0f,     
+               16.0f + w,
+               8.0f,      24.0f,
+               16.0f + w, 24.0f,
+               16.0f + w, 
+               24.0f + w,
+               16.0f + w, 24.0f, 
+               24.0f + w, 24.0f,
+
+               0.0f,
+               8.0f,
+               0.0f,
+               8.0f,
+               16.0f + w,
+               8.0f,
+               16.0f + w,
+               16.0f + w,
+               24.0f + w,
+               16.0f + w,
+               24.0f + w,
+            };
+
+            model.idata = {
+                0, 1, 2, 2, 1, 3,  4, 5, 6, 6, 5, 7,  8, 9, 10, 10, 9, 11
+            };
+        }
+
+
+        /*
+        Parameter Info:
+            model data destination
             desired width offset (default 24px)
             desired height offset (default 24px)
         */

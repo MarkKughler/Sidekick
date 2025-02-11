@@ -44,7 +44,7 @@ void gui::cLinkContainer::Initialize(int allocation_size)
 {
     capacity = allocation_size;
     int vbuffer_size = sizeof(float) * 30; // (x, y, r, g, b) * 6 vertices per link
-    vbuffer_size *= capacity;              // pre allocate a larger space for (N) links
+    vbuffer_size *= capacity;              // pre allocate a larger space for (N) links 
 
     glGenVertexArrays(1, &_vao);
     glGenBuffers(1, &_vbo);
@@ -60,6 +60,34 @@ void gui::cLinkContainer::Initialize(int allocation_size)
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    // the new drag link lives in container slot zero
+    cLink new_link_data({ 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f });
+    Push(new_link_data);
+    is_dragging_new_link = false;
+}
+
+void gui::cLinkContainer::BeginNewLink(sPoint start)
+{
+    links[0].data[0] = start.x;
+    links[0].data[1] = start.y;
+    links[0].data[5] = start.x;
+    links[0].data[6] = start.y;
+
+    glBindVertexArray(_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * 2, &links[0].data[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 5, sizeof(float) * 2, &links[0].data[5]);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    is_dragging_new_link = true;
+}
+
+
+void gui::cLinkContainer::ResizeGpuBuffer()
+{
+    LOG_WARN("gui::cLinkContainer::ResizeGpuBuffer", "Not implemented");
 }
 
 
@@ -87,38 +115,31 @@ void gui::cLinkContainer::Pop(int slot)
 
 void gui::cLinkContainer::UpdateSegmentColor(unsigned int id, int slot)
 {
-    int offset;
-    switch (slot)
-    {
-    case 1: break;
-    case 2: offset = 12; break;
-    case 3: offset = 17; break;
-    case 4: break;
-    case 5: break;
-    default: return;
-    }
-
-    int i = (id * 30) + offset;
     sRGB hover_color = { 0.0f, 0.5f, 1.0f };
-    
+    unsigned long long offset = (unsigned long long)30 * id;
+    unsigned long long block_width = sizeof(float) * 3;
+
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     switch (slot)
     {
     case 1:
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 2), sizeof(float) * 3, &hover_color);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 7), sizeof(float) * 3, &hover_color);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 2), block_width, &hover_color);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 7), block_width, &hover_color);
+        break;
+    case 2:
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 12), block_width, &hover_color);
+        break;
+    case 3:
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 17), block_width, &hover_color);
         break;
     case 4:
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 22), sizeof(float) * 3, &hover_color);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 27), sizeof(float) * 3, &hover_color);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 22), block_width, &hover_color);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 27), block_width, &hover_color);
         break;
     case 5:
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 12), sizeof(float) * 3, &hover_color);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 17), sizeof(float) * 3, &hover_color);
-        break;
-    default:
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset), sizeof(float) * 3, &hover_color);
-        
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 12), block_width, &hover_color);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 17), block_width, &hover_color);
+        break;        
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -126,62 +147,55 @@ void gui::cLinkContainer::UpdateSegmentColor(unsigned int id, int slot)
 
 void gui::cLinkContainer::UpdateCtrlPtPos(unsigned int id, int slot, sPoint mouse_pos)
 {
-    int offset;
-    switch (slot)
-    {
-    case 1: offset = 0;  break;
-    case 2: offset = 10; break;
-    case 3: offset = 15; break;
-    case 4: offset = 25; break;
-    case 5: offset = 0;  break;
-    default: return;
-    }
-
-    int i = (id * 30) + offset;
     sPoint new_pos = { (float)mouse_pos.x, (float)mouse_pos.y };
     sPoint new_pos2;
-    if (slot < 5)
-    {
-        links[id].data[offset] = new_pos.x;
-        links[id].data[offset + 1] = new_pos.y;
-    }
+    unsigned long long offset = (unsigned long long)30 * id;
+    unsigned long long block_width = sizeof(float) * 2;
 
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     switch (slot)
     {
     case 1:
-        new_pos2 = { new_pos.x + 10, new_pos.y };
+        new_pos2 = { new_pos.x + 20, new_pos.y };
+        links[id].data[0] = new_pos.x;
+        links[id].data[1] = new_pos.y;
         links[id].data[5] = new_pos2.x;
         links[id].data[6] = new_pos2.y;
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset), sizeof(float) * 2, &new_pos);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset+5), sizeof(float) * 2, &new_pos2);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 0), block_width, &new_pos);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 5), block_width, &new_pos2);
         break;
     case 2:
         new_pos2 = { new_pos.x, links[id].data[1] };
+        links[id].data[10] = new_pos.x;
+        links[id].data[11] = new_pos.y;
         links[id].data[5] = new_pos2.x;
         links[id].data[6] = new_pos2.y;
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset), sizeof(float) * 2, &new_pos);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset-5), sizeof(float) * 2, &new_pos2);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 10), block_width, &new_pos);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 5), block_width, &new_pos2);
         break;
     case 3:
         new_pos2 = { new_pos.x, links[id].data[26] };
+        links[id].data[15] = new_pos.x;
+        links[id].data[16] = new_pos.y;
         links[id].data[20] = new_pos2.x;
         links[id].data[21] = new_pos2.y;
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset), sizeof(float) * 2, &new_pos);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset + 5), sizeof(float) * 2, &new_pos2);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 15), block_width, &new_pos);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 20), block_width, &new_pos2);
         break;
     case 4:
-        new_pos2 = { new_pos.x - 10, new_pos.y };
+        new_pos2 = { new_pos.x - 20, new_pos.y };
+        links[id].data[25] = new_pos.x;
+        links[id].data[26] = new_pos.y;
         links[id].data[20] = new_pos2.x;
         links[id].data[21] = new_pos2.y;
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset), sizeof(float) * 2, &new_pos);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + offset - 5), sizeof(float) * 2, &new_pos2);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 25), block_width, &new_pos);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 20), block_width, &new_pos2);
         break;
     case 5:
         links[id].data[11] = links[id].data[11] + (new_pos.y - links[id].data[11]);
         links[id].data[16] = links[id].data[16] + (new_pos.y - links[id].data[16]);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 11), sizeof(float), &links[id].data[11]);
-        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (static_cast<unsigned long long>(id * 30) + 16), sizeof(float), &links[id].data[16]);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 11), sizeof(float), &links[id].data[11]);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * (offset + 16), sizeof(float), &links[id].data[16]);
         break;
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -196,32 +210,66 @@ void gui::cLinkContainer::ResetLinkColor(unsigned int id)
 }
 
 
+sRect test_input = { 549, 300, 559, 320 };
+
 void gui::cLinkContainer::Render(sPoint mouse_pos, bool mouse_down)
 {
-    glBindVertexArray(_vao);   
-    for(cLink& item : links)
+    glBindVertexArray(_vao);
+    
+    
+    if (is_dragging_new_link)
     {
-        if (!item.is_dragging)
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+        links[0].data[5] = mouse_pos.x;
+        links[0].data[6] = mouse_pos.y;
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 5, sizeof(float) * 2, &links[0].data[5]);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDrawArrays(GL_LINE_STRIP, 0, 2);
+        if (!mouse_down)
         {
-            if (mouse_down) item.is_dragging = true;
-            
-            item.TestHoverHandles(mouse_pos);
-            if (item.handle_id > 0) {
-                UpdateSegmentColor(item.slot_id, item.handle_id);
-                item.is_hover = true;
-            }
-            else if(item.is_hover)
+            //https://www.youtube.com/watch?v=fcomwmZAIpI
+
+            // todo: do the test here
+            if (mouse_pos.x > test_input.x && mouse_pos.x < test_input.w && mouse_pos.y > test_input.y && mouse_pos.y < test_input.h)
             {
-                ResetLinkColor(item.slot_id);
-                item.is_hover = false;
+                cLink new_link({links[0].data[0], links[0].data[1]}, {links[0].data[0]+20, links[0].data[1]}, {mouse_pos.x-20, mouse_pos.y}, {mouse_pos.x, mouse_pos.y});
+                Push(new_link);
             }
-       
-        } else {
-            if(!mouse_down) item.is_dragging = false;
-            
-            UpdateCtrlPtPos(item.slot_id, item.handle_id, mouse_pos);
+
+
+            is_dragging_new_link = false;  // oh fuck...now I have to drop it on a valid input
+        }
+    }
+   
+    
+    for(int i = 1; i<links.size(); i++)
+    {
+        if (!is_dragging_new_link)
+        {
+            if (!links[i].is_dragging)
+            {
+                if (mouse_down) links[i].is_dragging = true;
+
+                links[i].TestHoverHandles(mouse_pos);
+                if (links[i].handle_id > 0) {
+                    UpdateSegmentColor(links[i].slot_id, links[i].handle_id);
+                    links[i].is_hover = true;
+                }
+                else if (links[i].is_hover)
+                {
+                    ResetLinkColor(links[i].slot_id);
+                    links[i].is_hover = false;
+                }
+
+            } else {
+                if (!mouse_down) links[i].is_dragging = false;
+
+                UpdateCtrlPtPos(links[i].slot_id, links[i].handle_id, mouse_pos);
+            }
         }
 
-        glDrawArrays(GL_LINE_STRIP, item.slot_id * 6, 6);
+        glDrawArrays(GL_LINE_STRIP, links[i].slot_id * 6, 6);
     }
+
+    glBindVertexArray(0);
 }

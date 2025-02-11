@@ -5,6 +5,7 @@
 
 #include "glsl/shader_gui.h"
 #include "glsl/shader_line.h"
+#include "glsl/shader_grid2D.h"
 #include "glsl/shader_vert_color.h"
 
 #include "core/display.h"
@@ -15,8 +16,11 @@
 
 #include "gui/builder.h"
 #include "gui/menubar.h"
+#include "gui/grid_2D.h"
 #include "gui/spline.h"
-#include "gui/nodeLink.h"
+#include "gui/node.h"
+
+#include <set>
 
 
 // --------------------------- global variables ---------------------------------------
@@ -26,6 +30,7 @@ char szWindowClass[max_load_string];       // main window class name
 HWND hwnd_parent;
 RECT rect_screen_workarea;                 // screen space (x, y, w, h)
 RECT rect_client_workarea;                 // client space (0, 0, w, h)
+sPoint pt_screen_offset = { 0.0f, 0.0f };  // virtual screen drag offset
 
 core::cFont font_ui;
 core::cFont font_ui_bold;
@@ -34,8 +39,12 @@ core::cFont font_ui_bold;
 glsl::cShader_gui shader_gui;
 glsl::cShader_line shader_line;
 glsl::cShader_vert_color shader_vert_color;
+glsl::cShader_grid2D shader_grid2D;
 
 // --------------------------------- models -------------------------------------------
+
+gui::cNodeContainer nodes;
+
 core::cModel frame01;                    
 core::cModel frame02;
 core::cModel frame03;
@@ -51,11 +60,13 @@ gui::cMenubar menubar;
 
 
 
-   /*   ****  ****  *    ***  ***   **  ***** ***  ***  *   *    ***** *   * ***** ****  *   *
-  *  *  *   * *   * *     *  *     *  *   *    *  *   * **  *    *     **  *   *   *   * *   *
-  ****  ****  ****  *     *  *     ****   *    *  *   * * * *    ***   * * *   *   ****   * *
- *    * *     *     *     *  *    *    *  *    *  *   * *  **    *     *  **   *   *  *    *
- *    * *     *     **** ***  *** *    *  *   ***  ***  *   *    ****  *   *   *   *   *   */  
+//    _____                .__  .__               __  .__                ___________       __                 
+//   /  _  \ ______ ______ |  | |__| ____ _____ _/  |_|__| ____   ____   \_   _____/ _____/  |________ ___.__.
+//  /  /_\  \\____ \\____ \|  | |  |/ ___\\__  \\   __\  |/  _ \ /    \   |    __)_ /    \   __\_  __ <   |  |
+// /    |    \  |_> >  |_> >  |_|  \  \___ / __ \|  | |  (  <_> )   |  \  |        \   |  \  |  |  | \/\___  |
+// \____|__  /   __/|   __/|____/__|\___  >____  /__| |__|\____/|___|  / /_______  /___|  /__|  |__|   / ____|
+//         \/|__|   |__|                \/     \/                    \/          \/     \/             \/     
+   
 #ifdef NDEBUG
 #pragma comment(lib, "../src/lib/freetype-2.13.3/freetype.lib")
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev_instance, _In_ LPSTR cmd_line, _In_ int cmd_show) {
@@ -89,12 +100,19 @@ int main(int argc, char* argv[]) {
     shader_gui.Create();
     shader_line.Create();
     shader_vert_color.Create();
+    shader_grid2D.Create();
     
     font_ui.Initialize(shader_gui.prog_id, "data/fonts/Amble.ttf", 48);
     font_ui_bold.Initialize(shader_gui.prog_id, "data/fonts/Amble-Bold.ttf", 48);
 
+    gui::cGrid_2D grid2D({(float)config.monitor.x, (float)config.monitor.y});
+
+    //gui::cNode node({ 0, 0 });
+
+
     gui::sBuilder builder;
-    builder.NineSquare(frame01.data, 226.0f, 0.0f);
+    
+    builder.NodeFrame(frame01.data, 2, 226.0f);
     builder.NineSquare(frame02.data, 226.0f, 300.0f);
     builder.NineSquare(frame03.data, 150.0f, 0.0f);
     builder.NineSquare(frame04.data, 150.0f, 0.0f);
@@ -104,6 +122,7 @@ int main(int argc, char* argv[]) {
     frame03.Upload(shader_gui.prog_id);
     frame04.Upload(shader_gui.prog_id);
     frame05.Upload(shader_gui.prog_id);
+    
    
     menubar.Create(&shader_gui, &font_ui, &config);
 
@@ -115,12 +134,12 @@ int main(int argc, char* argv[]) {
     
     gui::cSpline spline({ 350, 320 }, { 549, 420 });
     
-    gui::cLink link1({350, 211}, {371, 211}, {530, 310}, {549, 310});
+    //gui::cLink link1({350, 211}, {371, 211}, {530, 310}, {549, 310});
     gui::cLink link3({350, 350}, {381, 500}, {518, 500}, {549, 460});
     gui::cLink link4({350, 380}, {371, 510}, {528, 510}, {549, 490});
     gui::cLinkContainer link_container;
     link_container.Initialize(10);
-    link_container.Push(link1);
+    //link_container.Push(link1);
     link_container.Push(link3);
     link_container.Push(link4);
     
@@ -153,9 +172,22 @@ int main(int argc, char* argv[]) {
         GetWindowRect(display.hWnd, &screen_pos);
         sPoint cursor_client_pos = { static_cast<float>(cursor_screen_pos.x) - screen_pos.left, static_cast<float>(cursor_screen_pos.y) - screen_pos.top };
 
-        // screen draw ---------------------------------------------------------
+        // ________                        ___________                             
+        // \_____  \____________ __  _  __ \_   _____/___________    _____   ____  
+        //  | |  \  \_  __ \__  \\ \/ \/ /  |    __) \_  __ \__  \  /     \_/ __ \ 
+        //  | '___'  \  | \// __ \\     /   |     \   |  | \// __ \|  Y Y  \  ___/ 
+        // /_______  /__|  (____  /\/\_/    \___  /   |__|  (____  /__|_|  /\___  >
+        //         \/           \/              \/               \/      \/     \/ 
+        
         display.ogl.Begin();
         glDisable(GL_DEPTH_TEST);
+        
+
+        glUseProgram(shader_grid2D.prog_id);
+        glUniformMatrix4fv(shader_grid2D.loc_projection, 1, false, config.ortho.mtx);
+        glUniform2f(shader_grid2D.loc_screenRes, config.screen.x, config.screen.y);
+        glUniform2f(shader_grid2D.loc_offset, pt_screen_offset.x, pt_screen_offset.y);
+        grid2D.Render();
 
         glUseProgram(shader_gui.prog_id);
         glUniformMatrix4fv(shader_gui.loc_projection, 1, false, config.ortho.mtx);
@@ -173,8 +205,11 @@ int main(int argc, char* argv[]) {
                     
                 config.is_maxamized = !config.is_maxamized;
                 display.ogl.GetOrtho(config.ortho);
+                display.lButtonDown = false;
                 break;
-        case 3: ShowWindow(display.hWnd, SW_SHOWMINIMIZED); break;
+        case 3: ShowWindow(display.hWnd, SW_SHOWMINIMIZED); 
+                display.lButtonDown = false;
+                break;
         case 4:
                 {
                 display.window_dragging = true;
@@ -189,6 +224,12 @@ int main(int argc, char* argv[]) {
                 }
         }
         
+        // handle virtual screen manipulation
+        if (display.input_state[VK_SHIFT] && display.lButtonDown)
+        {
+            pt_screen_offset.x += (cursor_screen_pos.x - last_cursor_screen_pos.x);
+            pt_screen_offset.y += (cursor_screen_pos.y - last_cursor_screen_pos.y);
+        }
 
         tex_gui_atlas.Bind();
         glUniform2f(shader_gui.loc_translation, 100.0f, 200.0f); // group translation
@@ -198,10 +239,24 @@ int main(int argc, char* argv[]) {
         frame04.Render(449.0f, 208.0f, green);
         frame05.Render(449.0f, 248.0f, green);
       
-        glUniform2f(shader_gui.loc_offset, 0.0f, 7.0f); // glyph baseline offset
-        font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
+        glUniform2f(shader_gui.loc_offset, 40.0f, 7.0f); // glyph baseline offset
+        //font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
         font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 0, 0.29f, white);
 
+        //350, 211   549, 310
+        sRect test_output = { 340, 201, 350, 221 };
+        
+
+
+
+        if (display.lButtonDown) 
+        {
+            // test nodes
+            if (cursor_client_pos.x > test_output.x && cursor_client_pos.x < test_output.w && cursor_client_pos.y > test_output.y && cursor_client_pos.y < test_output.h)
+            {
+                link_container.BeginNewLink(cursor_client_pos);
+            }
+        }
 
         sRGB line_color = { 0.9f, 0.9f, 0.9f };
         glUseProgram(shader_line.prog_id);
