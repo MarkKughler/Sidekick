@@ -20,6 +20,7 @@ namespace glsl
         unsigned int loc_translation; // float[2]
         unsigned int loc_offset;      // float[2]
         unsigned int loc_color;       // float[3]
+        unsigned int loc_zoom;        // float
     
     private:
         

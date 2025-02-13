@@ -18,6 +18,7 @@ namespace glsl
         unsigned int loc_projection;
         unsigned int loc_screenRes;
         unsigned int loc_offset;
+        unsigned int loc_zoom;
 
     private:
 

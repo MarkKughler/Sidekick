@@ -48,6 +48,7 @@ bool glsl::cShader_grid2D::Create()
         in vec2 uv;                // not used
         uniform vec2 screenRes;
         uniform vec2 offset;
+        uniform float zoom;
         out vec4 out_color;
 
         float grid(vec2 fragCoord, float space, float gridWidth)
@@ -66,7 +67,7 @@ bool glsl::cShader_grid2D::Create()
             vec3 color = vec3(0.1, 0.15, 0.2);
             vec2 center = screenRes.xy / 2.0;
             color *= (1.0 - length(center-pos) / screenRes.x * 1.22);
-            color *= clamp(grid(pos-offset, 48.0, 0.5) * grid(pos-offset, 240.0, 1.0), 0.7, 1.0);
+            color *= clamp(grid(pos-(offset*zoom), 48.0*zoom, 0.5) * grid(pos-(offset*zoom), 240.0*zoom, 1.0), 0.7, 1.0);
             
             out_color = vec4(color, 1.0);
         })";
@@ -116,6 +117,7 @@ bool glsl::cShader_grid2D::Create()
     loc_projection = glGetUniformLocation(prog_id, "projection");
     loc_screenRes  = glGetUniformLocation(prog_id, "screenRes");
     loc_offset     = glGetUniformLocation(prog_id, "offset");
+    loc_zoom       = glGetUniformLocation(prog_id, "zoom");
     LOG_INFO("cShader_grid2D::Create", "shader program link success");
     return true;
 }

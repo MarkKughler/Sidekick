@@ -13,6 +13,7 @@ glsl::cShader_line::cShader_line()
      loc_projection = 0;
      loc_color      = 0;
      loc_offset     = 0;
+     loc_zoom       = 0;
 }
 
 
@@ -33,9 +34,11 @@ bool glsl::cShader_line::Create()
         in vec2 pos;
         uniform mat4 projection;
         uniform vec2 offset;
+        uniform float zoom;
+
         void main() 
         {
-            vec2 p = pos + offset;
+            vec2 p = (pos + offset) * zoom;
             gl_Position = vec4(p, 0.0, 1.0) * projection;
         })";
     
@@ -92,6 +95,7 @@ bool glsl::cShader_line::Create()
 
     loc_projection = glGetUniformLocation(prog_id, "projection");
     loc_offset = glGetUniformLocation(prog_id, "offset");
+    loc_zoom = glGetUniformLocation(prog_id, "zoom");
     loc_color = glGetUniformLocation(prog_id, "color");
     LOG_INFO("cShader_line::Create", "shader program link success");
     return true;

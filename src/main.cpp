@@ -31,6 +31,7 @@ HWND hwnd_parent;
 RECT rect_screen_workarea;                 // screen space (x, y, w, h)
 RECT rect_client_workarea;                 // client space (0, 0, w, h)
 sPoint pt_screen_offset = { 0.0f, 0.0f };  // virtual screen drag offset
+float screen_zoom = 1.0f;                  // virtual screen zoom factor
 
 core::cFont font_ui;
 core::cFont font_ui_bold;
@@ -113,6 +114,7 @@ int main(int argc, char* argv[]) {
     gui::sBuilder builder;
     
     builder.NodeFrame(frame01.data, 2, 226.0f);
+
     builder.NineSquare(frame02.data, 226.0f, 300.0f);
     builder.NineSquare(frame03.data, 150.0f, 0.0f);
     builder.NineSquare(frame04.data, 150.0f, 0.0f);
@@ -182,18 +184,85 @@ int main(int argc, char* argv[]) {
         display.ogl.Begin();
         glDisable(GL_DEPTH_TEST);
         
-
+        
+        // draw backgroun grid ------------------------------------------------------------------
         glUseProgram(shader_grid2D.prog_id);
         glUniformMatrix4fv(shader_grid2D.loc_projection, 1, false, config.ortho.mtx);
         glUniform2f(shader_grid2D.loc_screenRes, config.screen.x, config.screen.y);
         glUniform2f(shader_grid2D.loc_offset, pt_screen_offset.x, pt_screen_offset.y);
+        glUniform1f(shader_grid2D.loc_zoom, screen_zoom);
         grid2D.Render();
 
+        if (display.lButtonDown)
+        {
+            if (display.input_state[VK_SHIFT])
+            {
+                pt_screen_offset.x += (cursor_screen_pos.x - last_cursor_screen_pos.x);
+                pt_screen_offset.y += (cursor_screen_pos.y - last_cursor_screen_pos.y);
+            }
+            if (display.input_state[VK_CONTROL])
+            {
+                screen_zoom += (cursor_screen_pos.x - last_cursor_screen_pos.x) * 0.001f;
+                if (screen_zoom < 0.05f) screen_zoom = 0.05f;
+                if (screen_zoom > 1.0f) screen_zoom = 1.0f;
+            }
+        }
+
+        // draw node frames ---------------------------------------------------------------------
+        glUseProgram(shader_gui.prog_id);
+        tex_gui_atlas.Bind();
+        glUniformMatrix4fv(shader_gui.loc_projection, 1, false, config.ortho.mtx);
+        glUniform2f(shader_gui.loc_translation, pt_screen_offset.x, pt_screen_offset.y); // group translation
+        glUniform1f(shader_gui.loc_zoom, screen_zoom);
+        frame01.Render(0.f, 24.f , blue);
+        frame02.Render(0.f, 100.f, green);
+        frame03.Render(449.0f, 99.0f, blue);
+        frame04.Render(449.0f, 208.0f, green);
+        frame05.Render(449.0f, 248.0f, green);
+      
+        glUniform2f(shader_gui.loc_offset, 40.0f, 7.0f); // glyph baseline offset
+        //font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
+        font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 24, 0.29f, white);
+
+        //350, 211   549, 310
+        sRect test_output = { 340, 201, 350, 221 };
+        
+
+
+
+        if (display.lButtonDown) 
+        {
+            // test nodes
+            if (cursor_client_pos.x > test_output.x && cursor_client_pos.x < test_output.w && cursor_client_pos.y > test_output.y && cursor_client_pos.y < test_output.h)
+            {
+                link_container.BeginNewLink(cursor_client_pos);
+            }
+        }
+
+        sRGB line_color = { 0.9f, 0.9f, 0.9f };
+        glUseProgram(shader_line.prog_id);
+        glUniformMatrix4fv(shader_line.loc_projection, 1, GL_FALSE, config.ortho.mtx);
+        glUniform2f(shader_line.loc_offset, pt_screen_offset.x, pt_screen_offset.y);
+        glUniform3f(shader_line.loc_color, line_color.r, line_color.g, line_color.b);
+        glUniform1f(shader_line.loc_zoom, screen_zoom);
+        //line.Render();
+        spline.Render();
+
+
+
+        glUseProgram(shader_vert_color.prog_id);
+        glUniformMatrix4fv(shader_vert_color.loc_projection, 1, GL_FALSE, config.ortho.mtx);
+        glUniform2f(shader_vert_color.loc_offset, pt_screen_offset.x, pt_screen_offset.y);
+        glUniform1f(shader_vert_color.loc_zoom, screen_zoom);
+        link_container.Render(cursor_client_pos, display.lButtonDown);
+
+
+        // draw menubar
         glUseProgram(shader_gui.prog_id);
         glUniformMatrix4fv(shader_gui.loc_projection, 1, false, config.ortho.mtx);
         glUniform2f(shader_gui.loc_translation, 0.0f, 0.0f);
+        glUniform1f(shader_gui.loc_zoom, 1.0f);
         tex_gui_atlas.Bind();
-        
         
         int event = menubar.Draw(cursor_client_pos.x, cursor_client_pos.y, display.lButtonDown);
         if (display.window_dragging) event = 4;
@@ -223,57 +292,6 @@ int main(int argc, char* argv[]) {
                 break;
                 }
         }
-        
-        // handle virtual screen manipulation
-        if (display.input_state[VK_SHIFT] && display.lButtonDown)
-        {
-            pt_screen_offset.x += (cursor_screen_pos.x - last_cursor_screen_pos.x);
-            pt_screen_offset.y += (cursor_screen_pos.y - last_cursor_screen_pos.y);
-        }
-
-        tex_gui_atlas.Bind();
-        glUniform2f(shader_gui.loc_translation, 100.0f, 200.0f); // group translation
-        frame01.Render(0.f, 0.f , blue);
-        frame02.Render(0.f, 100.f, green);
-        frame03.Render(449.0f, 99.0f, blue);
-        frame04.Render(449.0f, 208.0f, green);
-        frame05.Render(449.0f, 248.0f, green);
-      
-        glUniform2f(shader_gui.loc_offset, 40.0f, 7.0f); // glyph baseline offset
-        //font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
-        font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 0, 0.29f, white);
-
-        //350, 211   549, 310
-        sRect test_output = { 340, 201, 350, 221 };
-        
-
-
-
-        if (display.lButtonDown) 
-        {
-            // test nodes
-            if (cursor_client_pos.x > test_output.x && cursor_client_pos.x < test_output.w && cursor_client_pos.y > test_output.y && cursor_client_pos.y < test_output.h)
-            {
-                link_container.BeginNewLink(cursor_client_pos);
-            }
-        }
-
-        sRGB line_color = { 0.9f, 0.9f, 0.9f };
-        glUseProgram(shader_line.prog_id);
-        glUniformMatrix4fv(shader_line.loc_projection, 1, GL_FALSE, config.ortho.mtx);
-        glUniform2f(shader_line.loc_offset, 0.f, 0.f);
-        glUniform3f(shader_line.loc_color, line_color.r, line_color.g, line_color.b);
-        //line.Render();
-        spline.Render();
-
-
-
-        glUseProgram(shader_vert_color.prog_id);
-        glUniformMatrix4fv(shader_vert_color.loc_projection, 1, GL_FALSE, config.ortho.mtx);
-        glUniform2f(shader_vert_color.loc_offset, 0.f, 0.f);
-        link_container.Render(cursor_client_pos, display.lButtonDown);
-
-
 
         glEnable(GL_DEPTH_TEST);
         display.ogl.End();

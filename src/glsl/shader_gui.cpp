@@ -26,9 +26,11 @@ bool glsl::cShader_gui::Create()
         uniform mat4 projection;
         uniform vec2 translation;    
         uniform vec2 offset; 
+        uniform float zoom;
+
         void main()  
         {   
-            vec2 p = pos.xy + translation + offset;
+            vec2 p = (pos.xy + translation + offset) * zoom;
             gl_Position = vec4(p.xy, 0.0, 1.0) * projection;
             uv = pos.zw;
         };)";
@@ -93,6 +95,7 @@ bool glsl::cShader_gui::Create()
     loc_translation = glGetUniformLocation(prog_id, "translation");
     loc_offset      = glGetUniformLocation(prog_id, "offset");
     loc_color       = glGetUniformLocation(prog_id, "color");
+    loc_zoom        = glGetUniformLocation(prog_id, "zoom");
     LOG_INFO("cShader_gui::Create", "shader program link success");
     return true;
 }

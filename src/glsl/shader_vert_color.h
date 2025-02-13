@@ -16,6 +16,7 @@ namespace glsl
         unsigned int prog_id;
         unsigned int loc_projection;  // float[16]
         unsigned int loc_offset;      // float[2]
+        unsigned int loc_zoom;        // float
 
     private:
 
