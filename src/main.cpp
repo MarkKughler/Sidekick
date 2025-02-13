@@ -215,14 +215,14 @@ int main(int argc, char* argv[]) {
         glUniform2f(shader_gui.loc_translation, pt_screen_offset.x, pt_screen_offset.y); // group translation
         glUniform1f(shader_gui.loc_zoom, screen_zoom);
         frame01.Render(0.f, 24.f , blue);
-        frame02.Render(0.f, 100.f, green);
+        frame02.Render(0.f, 400.f, green);
         frame03.Render(449.0f, 99.0f, blue);
         frame04.Render(449.0f, 208.0f, green);
         frame05.Render(449.0f, 248.0f, green);
       
         glUniform2f(shader_gui.loc_offset, 40.0f, 7.0f); // glyph baseline offset
-        //font_ui.RenderText("Sidekick v0.1.0 - 2025", 10, 30, 0.29f, white);
-        font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 24, 0.29f, white);
+        font_ui.RenderText("My Node", 10, 24, 0.29f, white);
+        //font_ui_bold.RenderText("Sidekick v0.1.0 - 2025", 10, 24, 0.29f, white);
 
         //350, 211   549, 310
         sRect test_output = { 340, 201, 350, 221 };
